@@ -5,7 +5,7 @@ JS Tree Usage?
 --------------
 * Use tree-library with drag/drop?
 * 1st Option: https://github.com/dragosu/jquery-aciTree
-** Note, depends on https://github.com/dragosu/jquery-aciPlugin
+  * Note, depends on https://github.com/dragosu/jquery-aciPlugin
 * 2nd Option: https://github.com/mar10/fancytree
 * Context menu: use jQuery UI instead?
 
