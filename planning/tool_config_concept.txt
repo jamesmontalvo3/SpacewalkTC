@@ -1,0 +1,258 @@
+JSONTree Stuff:
+083:  getJSONTreeValue
+911:  getNewJSONTreeItem
+1379: JSONTree: Initiation of JSONTree (up to 3117)
+3126: Most of $(document).ready()...tooltip section
+
+Use tree-library with drag/drop?
+1st Option: https://github.com/dragosu/jquery-aciTree
+          Note, depends on https://github.com/dragosu/jquery-aciPlugin
+2nd Option: https://github.com/mar10/fancytree
+
+Context menu: use jQuery UI instead?
+
+
+Other stuff:
+eosFieldValue.in_array....use _.indexOf
+getUrlVars....there has to be a library version of this
+
+
+
+
+
+* Rest of page...what other form info?
+** what will the workflow be like?
+* eosTree or aciTree with eosTree merged in
+* new backend, stores individual data items
+* Output:
+** Generate word document with 3-column tool config
+** Generate excel document (or PDF'd big table o'tools)
+*** Later perhaps generate IPV XML procedure?
+* IMS integration
+* Limited Life
+* Tie into OOT? Go for EVA
+
+
+Plan
+====
+
+1. Create minimum viable product
+2. Publish to Github with cool name like SpacewalkTC (future procedure editor like SpacewalkPE)
+3. Request assistance from hacker news community
+
+Create minimum viable product
+-----------------------------
+
+1. Determine data format
+	1. Save-able format
+	2. Server format
+	3. 
+2. Determine event and revision method
+	1. 
+
+
+
+* * * * * * * * * * * * * * *
+*      database tables      *
+* * * * * * * * * * * * * * *
+items_on_event
+	id
+
+	event_id
+	rev
+	
+	ims_cage
+	ims_pn
+	ims_sn
+	
+	future_parent_cage
+	future_parent_pn
+	future_parent_sn
+
+	display_text  //override default?
+	qty //default 1
+	
+	new_location_text // like: EMU 3005
+	
+	config_notes
+	gather_notes
+	
+	initial_parents // JSON like: [["NASA","ISS",""],["NASA","A/L",""],["NASA","Tether Staging Area",""]]
+	
+	
+item_display_text
+	ims_cage
+	ims_pn
+	display_text
+	
+	
+EVENTS
+	id
+	date
+	name
+	jedi
+	overview
+	
+
+
+
+
+
+
+* * * * * * * * * * * * * * *
+*   FILE FORMAT CONCEPTS    *
+* * * * * * * * * * * * * * *
+# Event Data
+{
+	"Date" : "16-APR-2014",
+	"JEDI" : "39-0268A",
+	"name" : "US EVA 26", // Creates "US EVA 26 Tool Gather & Config" for msg and "US EVA 26 Tool Config" for proc
+	"Overview" : "The items highlighted in yellow have been added/changed since your last tool configuration. This message is color coded per bag.  Example:  All items that are Blue are going into/coming from the same (blue) CTB.  This message is written to be performed in order.\n\nFor help identifying the correct S/N's, reference SODF; EVA TASK; 1.7.101 EVA Tool Serial Number Reference.<ol><li>'''REPORT''' to MCC-H the S/Ns</li><li>'''PHOTOGRAPH''' MWS 1 & MWS 2  and outside of bags.</li><li>'''REPORT''' to MCC-H when activity is complete, the requested S/N information, and any deltas.</li></ol>"
+}
+
+# Tables
+
+## Retrieve the following bags
+101	3.0 CTB: SARJ Hardware
+102	1.0 CTB: EVA Sockets and Drivers
+103	1.0 CTB: MWS Hardware
+104	0.5 CTB: Scoops
+105	1.0 CTB: EVA Miscellaneous Tools #1
+
+## Configure EV1 MWS (Mastracchio)
+1	MWS Baseplate
+2		MWS T-Bar
+3			RET
+4			RET w/PIP-pin
+5			Adj Tether
+6			Wire Tie (2)
+7			Sm Trash Bag
+8		BRT
+9			RET
+10			Wire Tie (2)
+11		Swing Arm (L)
+12			RET
+13				PGT
+14					PGT Battery
+15					7/16 wobble
+16	D-Ring Extender (2)
+17		85-ft ST
+18	Waist Tether
+994	SAFER
+20	WVS
+
+## Configure EV2 MWS (Swanson)
+21		MWS Baseplate				<-- added tab to see if spacing better
+22			MWS T-Bar
+23				RET
+24				RET w/PIP-pin
+25				Adj Tether
+26				Wire Tie (2)
+27				Sm Trash Bag
+28			BRT
+29				RET
+30				Wire Tie (2)
+31			Swing Arm (L)
+32				RET
+33					PGT
+34						PGT Battery
+35						7/16 wobble
+360		D-Ring Extender (2)
+361			85-ft ST
+362		Waist Tether
+363		SAFER
+364		WVS
+
+## Alternate data formats: Configure EV2 MWS (Swanson)
+MWS Baseplate <1>
+	MWS T-Bar <2>
+		RET <3>
+		RET w/PIP-pin <4>
+		Adj Tether <5>
+		Wire Tie (2) <6>
+		Sm Trash Bag <7>
+	BRT [8]
+		RET [9]
+		Wire Tie (2) [10]
+	Swing Arm (L) [11]
+		RET ## 12
+			PGT ## 13
+				PGT Battery ## 14
+				7/16 wobble ##   15
+D-Ring Extender {{2}} {{16}}
+	85-ft ST {{17}}
+Waist Tether {{105}}
+SAFER ##19##
+WVS ## 20
+
+## Configure Crewlock Bag #1
+41	<b>Crewlock Bag #1</b>
+
+## Configure Crewlock Bag #2
+42	'''Crewlock Bag #2'''
+
+# Item Data
+{
+	"1" : {
+		"display" : "MWS Baseplate",
+		"IMSidentity" : ["NASA", "SEG34523452-123", "1003"],
+		"qty" : "1",
+		"currentIMSparents" : [
+			["NASA","ISS",""],
+			["NASA","A/L",""],
+			["NASA","A/L1_Crewlock",""],
+			["NASA","Staging Bag","1001"]
+		]
+		"newLocationText" : "A/L1A1",
+		"ConfigNotes" : "",
+		"GatherNotes" : "<b>VERIFY</b> stuff is in the correct place\n<b>REPORT</b> something about this item"
+	},
+
+	"2" : {
+		"display" : "MWS T-Bar",
+		"IMSidentity" : ["NASA", "SEG3452342532-123", "1034"],
+		"qty" : "1",
+		"currentIMSparents" : [
+			["NASA","ISS",""],
+			["NASA","A/L",""],
+			["NASA","A/L1_Crewlock",""],
+			["NASA","Tether Staging Area",""]
+		],
+		"newLocationText" : "A/L1A1",
+		"ConfigNotes" : "",
+		"GatherNotes" : ""
+	},
+
+	"3" : {
+		"display" : "RET sm-sm",
+		"IMSidentity" : ["NASA", "SEG3452342532-123", "1034"],
+		"qty" : "1",
+		"currentIMSparents" : [
+			["NASA","ISS",""],
+			["NASA","A/L",""],
+			["NASA","A/L1_Crewlock",""],
+			["NASA","Tether Staging Area",""]
+		]
+		"newLocationText" : "A/L1A1",
+		"ConfigNotes" : "",
+		"GatherNotes" : "<b>USE <span style=\"color:red;\">RED</span> RETs</b>\n<b>REPORT</b> S/N\n"
+	},
+	
+	"4" : {
+		"display" : "Wire Tie (short)",
+		"IMSidentity" : ["NASA", "SEG32462572456-634", ""],
+		"qty" : "2",
+		"currentIMSparents" : [
+			["NASA","ISS",""],
+			["NASA","A/L",""],
+			["NASA","A/L1_Crewlock",""],
+			["NASA","Tether Staging Area",""]
+		]
+		"newLocationText" : "A/L1A1",
+		"ConfigNotes" : "bunny ears",
+		"GatherNotes" : "<b>STOW</b> on T-Bar (bunny ears)"
+	},
+	
+	... The rest of the items ...
+	
+}

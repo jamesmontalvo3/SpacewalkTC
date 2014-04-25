@@ -1,4 +1,5 @@
-ToolConfigurator
-================
+Spacewalk Tool Configurator
+===========================
 
-Method of building EVA tool configs
+Method of building ExtraVehicular Activity (AKA "EVA", AKA "Spacewalk") tool
+configurations.
