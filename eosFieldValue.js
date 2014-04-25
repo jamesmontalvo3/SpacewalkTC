@@ -124,42 +124,84 @@
  *
  *	
  * METHODS:
- *	getPostObject
- *	getFieldValue
- *	getJSONTreeValue
- *	getNewJSONTreeItem
- *	initiateJsonTree
- *	buildInitialTreeStructure
- *	getJsonTreeItemByID
- *	getItemNameByID
- *	getItemAutoQtyByID
- *	getItemAutoCommentByID
- *	getItemAutoChildrenByID
- *	getItemCheckboxDataByID
- *	getCheckboxAlertByIdAndType
- *	getCheckboxPartNumsByIdAndType
- *	getItemAutoCheckedBoxesByID
- *	getItemCheckboxAlertsByID
- *	getItemCheckboxOptionArrayByID
- *	encodeJsonTreeCheckboxType
- *	displayItemSelector
- *	getTextboxSelect
- *	getItemBrowserDialogButton
- *	getCancelNewLIButton
- *	getCancelEditButton
- *	getSelectedItemLI
- *	selectItemFromBrowser
- *	updateListItem
+ * 
+ * 	data structure
+ *		getPostObject
+ *		getFieldValue
+ *		getJSONTreeValue
+ *
+ *	TBD
+ *		getNewJSONTreeItem
+ *		initiateJsonTree
+ *		buildInitialTreeStructure
+ *
  *	
+ *		getJsonTreeItemByID
+ *		getItemNameByID
+ *		getItemAutoQtyByID
+ *		getItemAutoCommentByID
+ *		getItemAutoChildrenByID
+ *		getItemCheckboxDataByID
+ *		getCheckboxAlertByIdAndType
+ *		getCheckboxPartNumsByIdAndType
+ *		getItemAutoCheckedBoxesByID
+ *		getItemCheckboxAlertsByID
+ *		getItemCheckboxOptionArrayByID
+ *
  *	
+ *		encodeJsonTreeCheckboxType
+ *		displayItemSelector
+ *		getTextboxSelect
+ *		getItemBrowserDialogButton
+ *		getCancelNewLIButton
+ *		getCancelEditButton
+ *		getSelectedItemLI
+ *		selectItemFromBrowser
+ *		updateListItem
+ *		doCheckboxAlerts
+ *		createNewItemUnderParent
+ *		createChildLI
+ *		modifyLI
+ *		getUniqueNumber
+ *		handleCheckboxes
+ *		createChildItems
+ *		removeItemSelectors
+ *		cancelNewItem
+ *		cancelItemEdit
+ *		editItem
+ *		handleComment
+ *		itemComment
+ *		deselectItem
+ *		selectItem
+ *		addItemFunctions
+ *		getItemInfo
+ *
+ *	Expand / Collapse
+ *		toggleExpandCollapse
+ *		rebuildExpandCollapseImages
+ *		expandAllItems
+ *		collapseAllItems
+ *		collapseTopLevelItems
+ *
+ *		adjustIndents
  *	
+ *	Context Menu
+ *		jsonTreeContextMenu
+ *		addItem
+ *		copyItem
+ *		cutItem
+ *		pasteItem
+ *		contextMenuMoveItemUp
+ *		contextMenuMoveItemDown
+ *
+ *	Move items
+ *		moveSelectedItemUp
+ *		moveSelectedItemDown
+ *
+ *	Itemized List
+ *		updateItemizedList
  *		
- *	
- *	
- *	
- *	
- *	
- *	
+ *		document.ready->tooltip
  *	
  *	
  **/
