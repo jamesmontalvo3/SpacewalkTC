@@ -28,12 +28,15 @@ Misc Notes
 * Limited Life
 * Tie into OOT? Go for EVA
   * when this is live, ISOs and IMS can adopt principle of putting something in "notes" for alerting SpacewalkTC that there is an issue with a particular item. Notes something like "This is some useless info !alert(This is some warning info)
+* ? Save drafts with UPDATE events SET drafts=CONCAT(drafts,NEW_TEXT) where ...;
+  
 
 Big Picture Plan
 ----------------
 
-1. Determine data format
-	2. Server format
-	3. 
-2. Determine event and revision method
-	1. 
+1. Database layout (create database generator SQL file)
+2. Create backend for saving values to database
+	1. Receives values from form: e_id, e_version, e_date, e_name, jedi, overview, items
+	2. All except "items" basically directly pushed to database
+	3. "items" broken into multiple inserts into items_on_event
+	

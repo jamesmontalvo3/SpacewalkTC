@@ -1,3 +1,33 @@
+CREATE TABLE events (
+
+	-- event ID
+	id							int unsigned NOT NULL,
+	
+	-- event version, to allow revision of overview, name, date, etc...
+	version						int unsigned NOT NULL,
+	
+	-- @TODO: Should this be GMT day number? Like GMT 104/10:40:00
+	e_date						varbinary(14),
+	
+	-- name of the event...not sure if this is the EVA or the gather/config
+	-- event yet
+	name						varchar(255) NOT NULL,
+	
+	-- JEDI message...not sure if this is just the number or the name as well
+	jedi						varchar(255),
+	
+	-- All the stuff at the top of the tool gather/config, including the
+	-- procedure steps
+	overview					text,
+		
+	PRIMARY KEY (id, version)
+	
+) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
+
+/*
+	INDICES?
+*/
+
 
 CREATE TABLE items_on_event (
 
@@ -68,8 +98,8 @@ CREATE TABLE items_on_event (
 	-- additional S/N fields.
 	-- @TODO: How do we handle multiple IMS S/Ns?
 	-- @TODO: probably should go with TINYINT or SMALLINT here...
-	qty 						int unsigned NOT NULL default 1,
-	merge_with_item_number		int unsigned,
+	qty 						smallint unsigned NOT NULL default 1,
+	merge_with_item_number		smallint unsigned,
 	
 	-- Displayed in the "final location" column, under the location code
 	-- as an optional note. For example it may say "EMU 3005" or "Mesh bag
@@ -93,14 +123,37 @@ CREATE TABLE items_on_event (
 	--
 	-- Example:
 	-- [["NASA","Tether Staging Area",""],["NASA","A/L",""],["NASA","ISS",""]]
-	initial_parents				text
+	initial_parents				text,
+	
+	-- Not sure if this is a good idea since item_number may change as the user
+	-- PRIMARY KEY (event_id, event_version, item_number),
+	
+		
+	CONSTRAINT fk_event_version 
+		FOREIGN KEY (event_id, event_version) 
+		REFERENCES events (id, version)
+		ON DELETE CASCADE
+		ON UPDATE CASCADE
 
 ) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
+
+-- Also not sure this is a great idea for speed purposes. Leaving for now.
+CREATE INDEX event_id_version ON items_on_event (event_id, event_version);
+
+
+
 
 /* Can I create an index on this?
 CREATE UNIQUE INDEX index_name ON items_on_event(event_id,rev,ims_cage,ims_pn,ims_sn);
 */
 
+-- Not sure how to make this work...
+-- ALTER TABLE items_on_event 
+	-- ADD CONSTRAINT fk_future_parent
+	-- FOREIGN KEY (event_id, event_version, future_parent_item_number)
+	-- REFERENCES items_on_event (event_id, event_version, item_number)
+	-- ON DELETE NO ACTION
+	-- ON UPDATE NO ACTION;
 
 
 CREATE TABLE item_display_text (
@@ -119,30 +172,68 @@ CREATE TABLE item_display_text (
 	INDICES?
 */
 
-CREATE TABLE events (
+CREATE TABLE drafts (
+	
+	id							int unsigned NOT NULL PRIMARY KEY,
+	
+	-- All drafts are of a particular event
+	event_id					int unsigned NOT NULL,
 
-	-- event ID
-	id							int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	
-	-- event version, to allow revision of overview, name, date, etc...
-	version						int unsigned NOT NULL,
-	
-	-- @TODO: Should this be GMT day number? Like GMT 104/10:40:00
+	-- mirroring columns from `events` table
+	-- NOT REQ'D: version 						int unsigned NOT NULL,
 	e_date						varbinary(14),
-	
-	-- name of the event...not sure if this is the EVA or the gather/config
-	-- event yet
 	name						varchar(255) NOT NULL,
-	
-	-- JEDI message...not sure if this is just the number or the name as well
 	jedi						varchar(255),
+	overview					text,
 	
-	-- All the stuff at the top of the tool gather/config, including the
-	-- procedure steps
-	overview					text
+	-- All drafts, except for the very first for a particular event, should
+	-- have an origination draft or origination version. This means that the
+	-- user that saved a draft must have started from somewhere. If they
+	-- started from another draft, fill in `ori_draft`. If they started from
+	-- a saved version, fill in `ori_version`.
+	-- Also note that each time the user saves a draft, that new draft ID will
+	-- be inserted in the user_saved table.
+	ori_draft					int unsigned,
+	ori_version					int unsigned,
 	
+	draft_ts					binary(14) NOT NULL,
+	
+	username					varchar(16),
+	
+	items_json					text
+
 ) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
 
-/*
-	INDICES?
-*/
+CREATE INDEX key_event_id ON drafts (event_id);
+
+
+-- used to indicate where a user last left off on a particular event. If they
+-- last edited draft ID 2352 they will be given that as a starting point. If
+-- they lasted edited version 3 they will be given that. Every time a user
+-- saves a draft the new draft ID will be inserted here. 
+CREATE TABLE user_saved (
+
+	-- user id
+	u_id						int unsigned NOT NULL,
+
+	-- event id
+	e_id						int unsigned NOT NULL,
+	
+	-- draft id
+	d_id						int unsigned,
+	
+	-- version number
+	version						int unsigned
+
+) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE users (
+
+	id							int unsigned NOT NULL PRIMARY KEY,
+	
+	username					varchar(16),
+	
+	UNIQUE KEY `unique_username` (`username`) 
+
+) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
