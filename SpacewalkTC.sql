@@ -6,11 +6,11 @@ CREATE TABLE items_on_event (
 	-- rev, though. Thus, the event_id/version/item_number combination is
 	-- unique.
 	event_id					int unsigned NOT NULL,
-	version						int unsigned NOT NULL,
-	item_number					int unsigned NOT NULL AUTO_INCREMENT,
+	event_version				int unsigned NOT NULL,
+	item_number					int unsigned NOT NULL,
 
 	-- If this is an IMS item: populate these; Else: they should be null.
-	-- Note: for each event_id/rev combo there should be only one 
+	-- Note: for each event_id/version combo there should be only one 
 	-- ims_cage/ims_pn/ims_sn combo...but there can be multiple instances
 	-- of null ims_cage/pn/sn...so I'm not sure I can make an index for it
 	--
@@ -22,6 +22,12 @@ CREATE TABLE items_on_event (
 	ims_cage					varchar(5),
 	ims_pn						varchar(32),
 	ims_sn						varchar(32),
+	
+	-- Marks S/N as still to be determined. Allows user to create tool config
+	-- but not yet enter the S/N values if they don't know yet. This column is
+	-- needed to differentiate between S/N = "" (blank, e.g. not in IMS),
+	-- S/N = NULL (this item does not require a S/N), and S/N is TBD. 
+	ims_sn_tbd					boolean default 1,
 	
 	-- Should we store barcode? I suppose so, so it doesn't have to fetch it
 	-- from IMS each time. It is not grouped with the columns above because
@@ -72,7 +78,7 @@ CREATE TABLE items_on_event (
 	
 	-- config_notes: short parenthetical notes after items in the tool config
 	-- within the procedures
-	
+	-- 
 	-- gather_notes: actionable notes (i.e. starting with bold verb) for crew
 	-- to perform while setting up the tools.
 	config_notes				varchar(255) NOT NULL default '',
@@ -81,10 +87,10 @@ CREATE TABLE items_on_event (
 	-- The "ancestry" of the item initially, e.g. the parent item, its parent,
 	-- and all parents until the root item. First item is immediate parent;
 	-- last item is root item.
-	
+	--
 	-- Formatted as JSON array of JSON arrays. Each contained array is the IMS
 	-- unique identifying triplet of ims_cage, ims_pn and ims_sn.
-	
+	--
 	-- Example:
 	-- [["NASA","Tether Staging Area",""],["NASA","A/L",""],["NASA","ISS",""]]
 	initial_parents				text
@@ -116,7 +122,10 @@ CREATE TABLE item_display_text (
 CREATE TABLE events (
 
 	-- event ID
-	id							int unsigned NOT NULL AUTO_INCREMENT,
+	id							int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	
+	-- event version, to allow revision of overview, name, date, etc...
+	version						int unsigned NOT NULL,
 	
 	-- @TODO: Should this be GMT day number? Like GMT 104/10:40:00
 	e_date						varbinary(14),
