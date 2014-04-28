@@ -29,7 +29,7 @@ CREATE TABLE events (
 */
 
 
-CREATE TABLE items_on_event (
+CREATE TABLE event_items (
 
 	-- For each event there may be many revs, and within each rev there will
 	-- be many items. Each item_number should be used only once within each
@@ -69,7 +69,7 @@ CREATE TABLE items_on_event (
 	-- items like wipes, wire ties and bolts) we need to be able to hide them.
 	show_sn						boolean default 1,
 	
-	-- Used to override the defaults in the `item_display_text` table and the
+	-- Used to override the defaults in the `item_defaults` table and the
 	-- Ops Nom from IMS. 
 	--
 	-- Also, if the item is not in IMS (a "custom item") then this is how it
@@ -92,7 +92,7 @@ CREATE TABLE items_on_event (
 	-- config that show qty>1 and have multiple serial numbers. One item will
 	-- be sort of the "master" item, and all others will have the 
 	-- merge_with_item_number set to that item. Additionally, the table
-	-- item_display_text has a field "allow_multiple_qty" which will allow
+	-- item_defaults has a field "allow_multiple_qty" which will allow
 	-- some items to set qty>1 without listing multiple S/Ns. For items with
 	-- this set to FALSE (zero) setting the qty>1 will automatically create
 	-- additional S/N fields.
@@ -138,25 +138,25 @@ CREATE TABLE items_on_event (
 ) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
 
 -- Also not sure this is a great idea for speed purposes. Leaving for now.
-CREATE INDEX event_id_version ON items_on_event (event_id, event_version);
+CREATE INDEX event_id_version ON event_items (event_id, event_version);
 
 
 
 
 /* Can I create an index on this?
-CREATE UNIQUE INDEX index_name ON items_on_event(event_id,rev,ims_cage,ims_pn,ims_sn);
+CREATE UNIQUE INDEX index_name ON event_items(event_id,rev,ims_cage,ims_pn,ims_sn);
 */
 
 -- Not sure how to make this work...
--- ALTER TABLE items_on_event 
+-- ALTER TABLE event_items 
 	-- ADD CONSTRAINT fk_future_parent
 	-- FOREIGN KEY (event_id, event_version, future_parent_item_number)
-	-- REFERENCES items_on_event (event_id, event_version, item_number)
+	-- REFERENCES event_items (event_id, event_version, item_number)
 	-- ON DELETE NO ACTION
 	-- ON UPDATE NO ACTION;
 
 
-CREATE TABLE item_display_text (
+CREATE TABLE item_defaults (
 
 	-- Each IMS cage/pn combination can have a default display text
 	ims_cage					varchar(5) NOT NULL,
@@ -172,7 +172,7 @@ CREATE TABLE item_display_text (
 	INDICES?
 */
 
-CREATE TABLE drafts (
+CREATE TABLE event_drafts (
 	
 	id							int unsigned NOT NULL PRIMARY KEY,
 	
