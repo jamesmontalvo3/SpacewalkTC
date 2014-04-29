@@ -16,7 +16,77 @@ require 'database/rb.phar';
 
 // $nb = R::load( 'book', $id );
 
+
+/*
+	required actions:
+
+App        : Send page
+
+event
+
+revision
+	read   : Yes : View a revision
+	index  : Yes : See list of revisions for a particular event
+	create : ?   : Do you ever say "create me a new revision"? I don't think so...you get the latest, revise it, and send changes
+	update : NO  : revisions are frozen. Users create revisions of revisions each time they save
+	delete : NO  : user cannot delete...revisions table will get cleaned out when revs very old
+
+itemdefault
+	read   : NO  : Only read-all required for now
+	index  : Yes : Each initial page load get list of defaults (and perhaps check for changes periodically?)
+	create : Yes : each time a user uses an item without a default, it will create and ask for values
+	update : Yes : once created only should need to update. Can set values to zero/null/blank.
+	delete : NO  : Admin may need to delete at some point if a P/N gets messed up in IMS
+
+userlast
+	read   : 
+	index  : 
+	create : 
+	update : 
+	delete : 
+
+user
+	read   : ?
+	index  : ?
+	create : ?
+	update : ?
+	delete : ?
+
+ */
+
 $app = new \Slim\Slim();
+
+$app->group('/event', function () use ($app) {
+
+	// read   :
+    $app->get('/:id', function ($id) {
+
+    });
+
+	// index  : Show all events @TODO will this work?
+    $app->get('/', function () {
+
+    });
+
+	// create : PUT or POST?
+  	$app->post('/', function () {
+
+    });
+
+	// update : PUT or POST?
+    $app->post('/:id', function ($id) {
+
+    });
+
+	// delete : 
+    $app->delete('/:id', function ($id) {
+
+    });
+
+
+}
+
+
 
 
 // requires index.php in place...

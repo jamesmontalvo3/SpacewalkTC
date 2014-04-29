@@ -14,7 +14,7 @@ CREATE TABLE event (
 	-- event yet
 	name						varchar(255) NOT NULL,
 	
-	-- @pointer: erevision->id
+	-- @pointer: revision->id
 	released_rev_id				int unsigned
 				
 ) 
@@ -24,7 +24,7 @@ DEFAULT CHARSET=utf8;
 -- indices?
 
 
-CREATE TABLE erevision (
+CREATE TABLE revision (
 	
 	id							int unsigned AUTO_INCREMENT NOT NULL PRIMARY KEY,
 	
@@ -61,17 +61,17 @@ CREATE TABLE erevision (
 	
 ) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
 
-CREATE INDEX key_event_id ON erevision (event_id);
+CREATE INDEX key_event_id ON revision (event_id);
 
 ALTER TABLE event
 	ADD CONSTRAINT fk_event_released_rev_id 
 	FOREIGN KEY (released_rev_id) 
-	REFERENCES erevision (id)
+	REFERENCES revision (id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
-ALTER TABLE erevision
-	ADD CONSTRAINT fk_erevision_event_id 
+ALTER TABLE revision
+	ADD CONSTRAINT fk_revision_event_id 
 	FOREIGN KEY (event_id) 
 	REFERENCES event (id)
 	ON DELETE CASCADE
@@ -91,6 +91,9 @@ CREATE TABLE itemdefault (
 	-- text to display
 	display_text				varchar(255) NOT NULL default '',
 	allow_multiple_qty			boolean default 0
+
+
+	-- @TODO: Add some way for people to vote on "display_text"
 
 ) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
 
@@ -115,7 +118,7 @@ CREATE TABLE userlast (
 	e_id						int unsigned NOT NULL,
 	
 	-- rev id
-	r_id						int unsigned
+	r_id						int unsigned NOT NULL
 	
 	-- version number
 	-- NO longer necessary: version						int unsigned
