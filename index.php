@@ -2,9 +2,9 @@
 
 require 'vendor/autoload.php';
 
-require 'rb.phar';
-R::setup('mysql:host=localhost;dbname=DB','USER','PASSWORD');
-R::freeze( true );
+require 'database/rb.phar';
+//R::setup('mysql:host=localhost;dbname=DB','USER','PASSWORD');
+//R::freeze( true );
 
 // $b = R::dispense( 'book' );
 
@@ -20,17 +20,17 @@ $app = new \Slim\Slim();
 
 
 // requires index.php in place...
-$app->get('/hello/:name', function ($name) {
-    echo "Hello, $name. Do you like book ID #$id?";
-});
+// $app->get('/hello/:name', function ($name) {
+//     echo "Hello, $name. Do you like book ID #$id?";
+// });
 
-$app->get('/makeevent', function () {
-    $e = R::dispense( 'event' );
-	$e->datetime = "20140423000000";
-	$e->name = "US EVA 26b";
-	$id = R::store( $e );
-	echo "done. ID = $id";
-});
+// $app->get('/makeevent', function () {
+//     $e = R::dispense( 'event' );
+// 	$e->datetime = "20140423000000";
+// 	$e->name = "US EVA 26b";
+// 	$id = R::store( $e );
+// 	echo "done. ID = $id";
+// });
 
 
 
