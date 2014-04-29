@@ -1,17 +1,38 @@
-CREATE TABLE events (
+-- during development: 
+-- drop database stc;create database stc;use stc;source c:/xampp/htdocs/SpacewalkTC/SpacewalkTC.sql;
+
+CREATE TABLE event (
 
 	-- event ID
-	id							int unsigned NOT NULL,
-	
-	-- event version, to allow revision of overview, name, date, etc...
-	version						int unsigned NOT NULL,
+	id							int unsigned AUTO_INCREMENT NOT NULL PRIMARY KEY,
 	
 	-- @TODO: Should this be GMT day number? Like GMT 104/10:40:00
-	e_date						varbinary(14),
+	`datetime`						varbinary(14),
 	
 	-- name of the event...not sure if this is the EVA or the gather/config
 	-- event yet
 	name						varchar(255) NOT NULL,
+	
+	-- @pointer: erevision->id
+	released_rev_id				int unsigned
+				
+) 
+ENGINE=InnoDB, 
+DEFAULT CHARSET=utf8;
+
+-- indices?
+
+
+CREATE TABLE erevision (
+	
+	id							int unsigned AUTO_INCREMENT NOT NULL PRIMARY KEY,
+	
+	-- All drafts are of a particular event
+	-- @pointer: event->id
+	event_id					int unsigned NOT NULL,
+
+	-- event version
+	version						smallint unsigned,
 	
 	-- JEDI message...not sure if this is just the number or the name as well
 	jedi						varchar(255),
@@ -19,24 +40,55 @@ CREATE TABLE events (
 	-- All the stuff at the top of the tool gather/config, including the
 	-- procedure steps
 	overview					text,
-		
-	PRIMARY KEY (id, version)
+
+	
+	-- All drafts, except for the very first for a particular event, should
+	-- have an origination draft. This means that the user who saved a draft 
+	-- must have started from somewhere. 
+	-- Also note that each time the user saves a draft, that new draft ID will
+	-- be inserted in the `userlast` table.
+	ori_rev						int unsigned,
+	-- No longer required: ori_version					int unsigned,
+	
+	draft_ts					binary(14) NOT NULL,
+	
+	username					varchar(16),
+	
+	-- set to NULL when a released version? Or store pre-built JSON here so it can
+	-- just be sent on to the client?
+	items_json					text
 	
 ) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
 
-/*
-	INDICES?
-*/
+CREATE INDEX key_event_id ON erevision (event_id);
 
+ALTER TABLE event
+	ADD CONSTRAINT fk_event_released_rev_id 
+	FOREIGN KEY (released_rev_id) 
+	REFERENCES erevision (id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
 
-CREATE TABLE event_items (
+ALTER TABLE erevision
+	ADD CONSTRAINT fk_erevision_event_id 
+	FOREIGN KEY (event_id) 
+	REFERENCES event (id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+	
+-- @TODO: update comments. this table's purpose has changed dramatically.
+CREATE TABLE eventitem (
+
+	-- Some primary key is required for Laravel
+	id							int unsigned NOT NULL PRIMARY KEY,
 
 	-- For each event there may be many revs, and within each rev there will
 	-- be many items. Each item_number should be used only once within each
-	-- rev, though. Thus, the event_id/version/item_number combination is
+	-- rev, though. Thus, the event_id/item_number combination is
 	-- unique.
 	event_id					int unsigned NOT NULL,
-	event_version				int unsigned NOT NULL,
+	-- no longer maintain revs: event_version int unsigned NOT NULL,
 	item_number					int unsigned NOT NULL,
 
 	-- If this is an IMS item: populate these; Else: they should be null.
@@ -123,40 +175,43 @@ CREATE TABLE event_items (
 	--
 	-- Example:
 	-- [["NASA","Tether Staging Area",""],["NASA","A/L",""],["NASA","ISS",""]]
-	initial_parents				text,
+	initial_parents				text
 	
 	-- Not sure if this is a good idea since item_number may change as the user
 	-- PRIMARY KEY (event_id, event_version, item_number),
 	
 		
-	CONSTRAINT fk_event_version 
-		FOREIGN KEY (event_id, event_version) 
-		REFERENCES events (id, version)
-		ON DELETE CASCADE
-		ON UPDATE CASCADE
-
 ) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
 
 -- Also not sure this is a great idea for speed purposes. Leaving for now.
-CREATE INDEX event_id_version ON event_items (event_id, event_version);
+CREATE INDEX event_id ON eventitem (event_id);
 
+ALTER TABLE eventitem
+	ADD CONSTRAINT fk_eventitem_event_id 
+	FOREIGN KEY (event_id) 
+	REFERENCES event (id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
 
 
 
 /* Can I create an index on this?
-CREATE UNIQUE INDEX index_name ON event_items(event_id,rev,ims_cage,ims_pn,ims_sn);
+CREATE UNIQUE INDEX index_name ON eventitem(event_id,rev,ims_cage,ims_pn,ims_sn);
 */
 
 -- Not sure how to make this work...
--- ALTER TABLE event_items 
+-- ALTER TABLE eventitem
 	-- ADD CONSTRAINT fk_future_parent
 	-- FOREIGN KEY (event_id, event_version, future_parent_item_number)
-	-- REFERENCES event_items (event_id, event_version, item_number)
+	-- REFERENCES eventitem (event_id, event_version, item_number)
 	-- ON DELETE NO ACTION
 	-- ON UPDATE NO ACTION;
 
 
-CREATE TABLE item_defaults (
+CREATE TABLE itemdefault (
+
+	-- Required for Laravel
+	id							int unsigned NOT NULL PRIMARY KEY,
 
 	-- Each IMS cage/pn combination can have a default display text
 	ims_cage					varchar(5) NOT NULL,
@@ -172,46 +227,15 @@ CREATE TABLE item_defaults (
 	INDICES?
 */
 
-CREATE TABLE event_drafts (
-	
-	id							int unsigned NOT NULL PRIMARY KEY,
-	
-	-- All drafts are of a particular event
-	event_id					int unsigned NOT NULL,
-
-	-- mirroring columns from `events` table
-	-- NOT REQ'D: version 						int unsigned NOT NULL,
-	e_date						varbinary(14),
-	name						varchar(255) NOT NULL,
-	jedi						varchar(255),
-	overview					text,
-	
-	-- All drafts, except for the very first for a particular event, should
-	-- have an origination draft or origination version. This means that the
-	-- user that saved a draft must have started from somewhere. If they
-	-- started from another draft, fill in `ori_draft`. If they started from
-	-- a saved version, fill in `ori_version`.
-	-- Also note that each time the user saves a draft, that new draft ID will
-	-- be inserted in the user_saved table.
-	ori_draft					int unsigned,
-	ori_version					int unsigned,
-	
-	draft_ts					binary(14) NOT NULL,
-	
-	username					varchar(16),
-	
-	items_json					text
-
-) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
-
-CREATE INDEX key_event_id ON drafts (event_id);
-
 
 -- used to indicate where a user last left off on a particular event. If they
 -- last edited draft ID 2352 they will be given that as a starting point. If
 -- they lasted edited version 3 they will be given that. Every time a user
 -- saves a draft the new draft ID will be inserted here. 
-CREATE TABLE user_saved (
+CREATE TABLE userlast (
+
+	-- A primary key is required for Laravel, but this table shouldn't ever
+	-- have a user interface associated with it so I don't think it's required.
 
 	-- user id
 	u_id						int unsigned NOT NULL,
@@ -219,18 +243,18 @@ CREATE TABLE user_saved (
 	-- event id
 	e_id						int unsigned NOT NULL,
 	
-	-- draft id
-	d_id						int unsigned,
+	-- rev id
+	r_id						int unsigned
 	
 	-- version number
-	version						int unsigned
+	-- NO longer necessary: version						int unsigned
 
 ) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE users (
+CREATE TABLE `user` (
 
-	id							int unsigned NOT NULL PRIMARY KEY,
+	id							int unsigned AUTO_INCREMENT NOT NULL PRIMARY KEY,
 	
 	username					varchar(16),
 	
