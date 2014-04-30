@@ -1,8 +1,13 @@
 <?php
 
+ini_set('display_errors',1);
+error_reporting(-1);
+
 require 'vendor/autoload.php';
 
 require 'database/rb.phar';
+
+
 //R::setup('mysql:host=localhost;dbname=DB','USER','PASSWORD');
 //R::freeze( true );
 
@@ -21,8 +26,6 @@ require 'database/rb.phar';
 	required actions:
 
 App        : Send page
-
-event
 
 revision
 	read   : Yes : View a revision
@@ -54,37 +57,87 @@ user
 
  */
 
-$app = new \Slim\Slim();
+$app = new \Slim\Slim(array(
+	"debug" => true,
+	'log.enabled' => true
+));
+
+$app->get('/', function() {
+	echo "Hello, World";
+});
+
+/*
 
 $app->group('/event', function () use ($app) {
 
 	// read   :
+	// $.ajax("http://localhost/SpacewalkTC/45", {type:"get"});
     $app->get('/:id', function ($id) {
-
+    	echo "read ($id)";
     });
 
 	// index  : Show all events @TODO will this work?
+	// $.ajax("http://localhost/SpacewalkTC/", {type:"get"});
     $app->get('/', function () {
-
+    	echo "index";
     });
 
 	// create : PUT or POST?
+	// $.ajax("http://localhost/SpacewalkTC/", {type:"post"});
   	$app->post('/', function () {
-
+  		echo "create";
     });
 
 	// update : PUT or POST?
+	// $.ajax("http://localhost/SpacewalkTC/45", {type:"post"});
     $app->post('/:id', function ($id) {
-
+    	echo "update ($id)";
     });
 
 	// delete : 
+	// $.ajax("http://localhost/SpacewalkTC/45", {type:"delete"});
     $app->delete('/:id', function ($id) {
-
+    	echo "delete ($id)";
     });
 
 
-}
+});
+
+*/
+
+
+
+// index  : Show all events @TODO will this work?
+// $.ajax("http://localhost/SpacewalkTC/", {type:"get"});
+// NOTE (BUG?): for some reason the trailing slash is needed on this in the
+// presence of the other get method with /:controller/:id
+$app->get('/:controller/', function ($controller) {
+	echo "index $controller";
+});
+
+// read   :
+// $.ajax("http://localhost/SpacewalkTC/45", {type:"get"});
+$app->get('/:controller/:id', function ($controller, $id) {
+	echo "read $controller ($id)";
+});
+
+// $.ajax("http://localhost/SpacewalkTC/", {type:"post"});
+// NOTE (BUG?): for some reason the trailing slash is needed on this in the
+// presence of the other post method with /:controller/:id
+$app->put('/:controller/', function ($controller) {
+	echo "create $controller";
+});
+
+// $.ajax("http://localhost/SpacewalkTC/45", {type:"post"});
+$app->put('/:controller/:id', function ($controller, $id) {
+	echo "update $controller ($id)";
+});
+
+// delete : 
+// $.ajax("http://localhost/SpacewalkTC/45", {type:"delete"});
+$app->delete('/:controller/:id', function ($controller, $id) {
+	echo "delete $controller ($id)";
+});
 
 
 
@@ -127,8 +180,5 @@ $app->group('/event', function () use ($app) {
 
 
 
-$app->get('/', function() {
-	echo "Hello, World";
-});
 
 $app->run();
