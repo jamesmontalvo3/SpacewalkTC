@@ -48,12 +48,12 @@ CREATE TABLE revision (
 	-- must have started from somewhere. 
 	-- Also note that each time the user saves a draft, that new draft ID will
 	-- be inserted in the `userlast` table.
-	ori_rev						int unsigned,
+	ori_rev_id					int unsigned,
 	-- No longer required: ori_version					int unsigned,
 	
 	revision_ts					binary(14) NOT NULL,
 	
-	username					varchar(16),
+	user_id						varchar(16),
 	
 	-- set to NULL when a released version? Or store pre-built JSON here so it can
 	-- just be sent on to the client?
@@ -112,13 +112,13 @@ CREATE TABLE userlast (
 	id							int unsigned NOT NULL PRIMARY KEY,
 
 	-- user id
-	u_id						int unsigned NOT NULL,
+	user_id						int unsigned NOT NULL,
 
 	-- event id
-	e_id						int unsigned NOT NULL,
+	event_id					int unsigned NOT NULL,
 	
 	-- rev id
-	r_id						int unsigned NOT NULL
+	revision_id					int unsigned NOT NULL
 	
 	-- version number
 	-- NO longer necessary: version						int unsigned

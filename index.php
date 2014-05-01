@@ -8,13 +8,14 @@ require 'App/config.php';
 
 require 'App/Database/rb.phar';
 R::setup($swalk_dbstring, $swalk_dbuser, $swalk_dbpass);
-R::freeze( true );
+// R::freeze( true );
 
 
 
 // models that need to be properly included in controller files or be handled
 // by an autoloader...
 require_once "App/Model/Model_Event.php";
+require_once "App/Model/Model_Revision.php";
 
 
 
