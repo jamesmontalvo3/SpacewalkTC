@@ -4,22 +4,18 @@ ini_set('display_errors',1);
 error_reporting(-1);
 
 require 'vendor/autoload.php';
+require 'App/config.php';
 
-require 'database/rb.phar';
+require 'App/Database/rb.phar';
+R::setup($swalk_dbstring, $swalk_dbuser, $swalk_dbpass);
+R::freeze( true );
 
 
-//R::setup('mysql:host=localhost;dbname=DB','USER','PASSWORD');
-//R::freeze( true );
 
-// $b = R::dispense( 'book' );
+// models that need to be properly included in controller files or be handled
+// by an autoloader...
+require_once "App/Model/Model_Event.php";
 
-// $b->title = 'Learn to Program';
-// $b->rating = 10;
-// $b['price'] = 29.99; //you can use array notation as well
-
-// $id = R::store( $b );
-
-// $nb = R::load( 'book', $id );
 
 
 /*
@@ -66,6 +62,100 @@ $app->get('/', function() {
 	echo "Hello, World";
 });
 
+// @TODO: this should move to a helpers class or something...
+function getController ($controller) {
+	require_once "App/Controller/$controller.php";
+	$ControllerClass  = "\\Spacewalk\\Controller\\$controller";
+	$reflection = new \ReflectionClass($ControllerClass);
+	return $reflection->newInstance(); 
+}
+
+
+// index  : Show all events @TODO will this work?
+// NOTE (BUG?): for some reason the trailing slash is needed on this in the
+// presence of the other get method with /:controller/:id
+$app->get('/:controller/', function ($controller) {
+	echo getController($controller)->index();
+});
+
+// read   :
+$app->get('/:controller/:id', function ($controller, $id) {
+	echo getController($controller)->read($id);
+});
+
+// create : 
+// NOTE (BUG?): for some reason the trailing slash is needed on this in the
+// presence of the other post method with /:controller/:id
+$app->put('/:controller/', function ($controller) use ($app) {
+	echo getController($controller)->create( $app->request->put() );
+});
+
+// update :
+$app->put('/:controller/:id', function ($controller, $id) use ($app) {
+	echo getController($controller)->update($id, $app->request->put() );
+});
+
+// delete : 
+$app->delete('/:controller/:id', function ($controller, $id) {
+	echo getController($controller)->delete($id);
+});
+
+$app->run();
+
+
+
+
+
+
+// $b = R::dispense( 'book' );
+
+// $b->title = 'Learn to Program';
+// $b->rating = 10;
+// $b['price'] = 29.99; //you can use array notation as well
+
+// $id = R::store( $b );
+
+// $nb = R::load( 'book', $id );
+
+
+
+
+// requires index.php in place...
+// $app->get('/hello/:name', function ($name) {
+//     echo "Hello, $name. Do you like book ID #$id?";
+// });
+
+// $app->get('/makeevent', function () {
+//     $e = R::dispense( 'event' );
+// 	$e->datetime = "20140423000000";
+// 	$e->name = "US EVA 26b";
+// 	$id = R::store( $e );
+// 	echo "done. ID = $id";
+// });
+
+
+// $app->get('/book/:id/:title/:rating/:price', function ($id,$title,$rating,$price) {
+	// $b = R::load('book', $id);
+	// $b->title = $title;
+	// $b->rating = $rating;
+	// $b->price = $price;
+	// $b->qty = 13465143;
+	// R::store( $b );
+	// echo "DONE";
+	// //echo"<pre>";print_r($b);echo"</pre>";
+// });
+
+// $app->get('/books', function() use ($app) {
+	// // $bs = R::findAll( 'book' );
+	// // $ar = R::exportAll( $bs );
+	
+	// $b = R::dispense( 'book', 3 );
+	// $app->response->headers->set('Content-Type', 'application/json');
+	// echo json_encode($b);
+	
+// });
+
+
 /*
 
 $app->group('/event', function () use ($app) {
@@ -104,81 +194,3 @@ $app->group('/event', function () use ($app) {
 });
 
 */
-
-
-
-// index  : Show all events @TODO will this work?
-// $.ajax("http://localhost/SpacewalkTC/", {type:"get"});
-// NOTE (BUG?): for some reason the trailing slash is needed on this in the
-// presence of the other get method with /:controller/:id
-$app->get('/:controller/', function ($controller) {
-	echo "index $controller";
-});
-
-// read   :
-// $.ajax("http://localhost/SpacewalkTC/45", {type:"get"});
-$app->get('/:controller/:id', function ($controller, $id) {
-	echo "read $controller ($id)";
-});
-
-// $.ajax("http://localhost/SpacewalkTC/", {type:"post"});
-// NOTE (BUG?): for some reason the trailing slash is needed on this in the
-// presence of the other post method with /:controller/:id
-$app->put('/:controller/', function ($controller) {
-	echo "create $controller";
-});
-
-// $.ajax("http://localhost/SpacewalkTC/45", {type:"post"});
-$app->put('/:controller/:id', function ($controller, $id) {
-	echo "update $controller ($id)";
-});
-
-// delete : 
-// $.ajax("http://localhost/SpacewalkTC/45", {type:"delete"});
-$app->delete('/:controller/:id', function ($controller, $id) {
-	echo "delete $controller ($id)";
-});
-
-
-
-
-// requires index.php in place...
-// $app->get('/hello/:name', function ($name) {
-//     echo "Hello, $name. Do you like book ID #$id?";
-// });
-
-// $app->get('/makeevent', function () {
-//     $e = R::dispense( 'event' );
-// 	$e->datetime = "20140423000000";
-// 	$e->name = "US EVA 26b";
-// 	$id = R::store( $e );
-// 	echo "done. ID = $id";
-// });
-
-
-
-// $app->get('/book/:id/:title/:rating/:price', function ($id,$title,$rating,$price) {
-	// $b = R::load('book', $id);
-	// $b->title = $title;
-	// $b->rating = $rating;
-	// $b->price = $price;
-	// $b->qty = 13465143;
-	// R::store( $b );
-	// echo "DONE";
-	// //echo"<pre>";print_r($b);echo"</pre>";
-// });
-
-// $app->get('/books', function() use ($app) {
-	// // $bs = R::findAll( 'book' );
-	// // $ar = R::exportAll( $bs );
-	
-	// $b = R::dispense( 'book', 3 );
-	// $app->response->headers->set('Content-Type', 'application/json');
-	// echo json_encode($b);
-	
-// });
-
-
-
-
-$app->run();

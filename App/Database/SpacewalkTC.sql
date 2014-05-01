@@ -51,7 +51,7 @@ CREATE TABLE revision (
 	ori_rev						int unsigned,
 	-- No longer required: ori_version					int unsigned,
 	
-	draft_ts					binary(14) NOT NULL,
+	revision_ts					binary(14) NOT NULL,
 	
 	username					varchar(16),
 	
@@ -108,8 +108,8 @@ CREATE TABLE itemdefault (
 -- saves a draft the new draft ID will be inserted here. 
 CREATE TABLE userlast (
 
-	-- A primary key is required for Laravel, but this table shouldn't ever
-	-- have a user interface associated with it so I don't think it's required.
+	-- useless, but required by RedBeansPHP...
+	id							int unsigned NOT NULL PRIMARY KEY,
 
 	-- user id
 	u_id						int unsigned NOT NULL,
@@ -124,6 +124,8 @@ CREATE TABLE userlast (
 	-- NO longer necessary: version						int unsigned
 
 ) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
+
+-- @TODO: u_id/e_id combination is UNIQUE! Unique Key.
 
 
 CREATE TABLE `user` (

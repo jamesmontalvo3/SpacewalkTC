@@ -38,3 +38,25 @@ for(var c=0; c<controllers.length; c++) {
 
 }
 
+
+
+
+function modelUpsert (controller, data) {
+
+	var url = app + "/" + controller + "/";
+
+	if (data.id)
+		url += data.id;
+
+	$.ajax(
+		url,
+		{
+			type : "put",
+			data : data,
+			success : function(response){
+				console.log(response);
+			}
+		}
+	);
+
+}
