@@ -10,6 +10,7 @@ class Event extends Base {
 	protected $orderbydirection = 'DESC'; // default 'DESC'
 
 	public function __construct () {
+		
 		parent::__construct(null, "event");
 	}
 
