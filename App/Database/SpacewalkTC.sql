@@ -134,6 +134,8 @@ CREATE TABLE `user` (
 	
 	username					varchar(16), -- for testing will use IP only to make simple
 	
+	perm_groups					varchar(255),
+
 	UNIQUE KEY `unique_username` (`username`) 
 
 ) ENGINE=InnoDB, DEFAULT CHARSET=utf8;

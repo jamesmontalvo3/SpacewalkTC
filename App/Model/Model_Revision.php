@@ -1,15 +1,11 @@
 <?php
 
 class Model_Revision extends RedBean_SimpleModel { 
-// class Model_Event extends \RedBeanPHP\SimpleModel { 
-	// public function update() {
-	// 	if (strlen($this->password) < 8) {
-	// 		throw new Exception('Password must be at least 8 characters long');
-	// 	}
-	// }
-
 
 	public function updateModel ($params) {
+
+		//@TODO: Simplify this with proper Session handling...
+		$user = \R::findOne( 'user', ' username = ? ', [ $_SERVER['REMOTE_ADDR'] ])
 
 		// get the RedBeansPHP "bean" for this model
 		$bean = $this->unbox();
@@ -19,13 +15,23 @@ class Model_Revision extends RedBean_SimpleModel {
 		$bean->overview    = $params['overview'];
 		$bean->revision_ts = date( "YmdHis", time() ); // revision saved
 		$bean->items_json  = $params['items_json'];
-		$bean->username    = $_SERVER['REMOTE_ADDR']; // @TODO: link this to the user model
-		// ori_rev : get from `userlast` table
+		$bean->u_id        = $user->id; // @TODO: link this to the user model
 		
-		// version : not updated here. set when a revision is published.
+		// userlast table unique on user ID and event ID
+		$userlast = \R::findOne( 'userlast', ' e_id = ? AND u_id = ? ', [$bean->event_id, $user->id] )
 
+		// ori_rev : get from `userlast` table
+		$bean->ori_rev = $userlast->r_id;
+
+		// version : not updated here. set when a revision is published.
 	
-		return \R::store( $bean ); // returns ID of event
+		$new_rev_id = \R::store( $bean ); // returns ID of event
+
+		$userlast->r_id = $new_rev_id;
+
+		//@TODO: store use
+
+		return null; //????????
 	}
 
 }
