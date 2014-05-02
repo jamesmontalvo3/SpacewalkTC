@@ -24,6 +24,24 @@ require 'App/config.php';
 
 App        : Send page
 
+other
+	release event
+
+	Note: whatever event a user last had is not a good indicator, since they
+	could have two windows open pulling from different revision histories. 
+	Instead we should trust the ori_rev that the user submits to be true, and
+	thus the `userlast` table is just a convenience for where the user left
+	off last time...and it's not necessarily even a good indicator since they
+	could possibly have more than one revision history branch they're working
+	on...
+
+event
+	read
+	index
+	create
+	update
+	delete
+
 revision
 	read   : Yes : View a revision
 	index  : Yes : See list of revisions for a particular event
