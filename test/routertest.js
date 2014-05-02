@@ -60,3 +60,36 @@ function modelUpsert (controller, data) {
 	);
 
 }
+
+
+
+
+
+
+
+
+
+function ajaxtest (url, type, respPrefix) {
+
+	var pre = respPrefix || "";
+	$.ajax(
+		url,
+		{
+			type : type,
+			"success" : function(response){
+				console.log(pre + response);
+			}
+		}
+	);
+
+}
+ajaxtest("api.php/event", "get");
+ajaxtest("api.php/event/232", "get");
+ajaxtest("api.php/event", "put");
+ajaxtest("api.php/event/2352", "put");
+ajaxtest("api.php/event/1/release/2345", "put");
+ajaxtest("api.php/event/1/unrelease", "put");
+ajaxtest("api.php/event/232", "delete");
+ajaxtest("api.php/event/232/undelete", "delete");
+
+
