@@ -1,3 +1,15 @@
+/*
+
+Note: whatever event a user last had is not a good indicator, since they
+could have two windows open pulling from different revision histories. 
+Instead we should trust the ori_rev that the user submits to be true, and
+thus the `userlast` table is just a convenience for where the user left
+off last time...and it's not necessarily even a good indicator since they
+could possibly have more than one revision history branch they're working
+on...
+
+*/
+
 -- used to indicate where a user last left off on a particular event. If they
 -- last edited draft ID 2352 they will be given that as a starting point. If
 -- they lasted edited version 3 they will be given that. Every time a user

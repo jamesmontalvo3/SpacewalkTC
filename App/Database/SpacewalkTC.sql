@@ -8,18 +8,19 @@ CREATE TABLE event (
 	id							int unsigned AUTO_INCREMENT NOT NULL PRIMARY KEY,
 	
 	-- @TODO: Should this be GMT day number? Like GMT 104/10:40:00
-	`datetime`						varbinary(14),
+	`datetime`					varbinary(14),
 	
 	-- name of the event...not sure if this is the EVA or the gather/config
 	-- event yet
 	name						varchar(255) NOT NULL,
 	
 	-- @pointer: revision->id
-	released_rev_id				int unsigned
+	released_rev_id				int unsigned,
+
+	-- used to mark events as "deleted". Ordinary events have status=null
+	status						varchar(32) DEFAULT NULL
 				
-) 
-ENGINE=InnoDB, 
-DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
 
 -- indices?
 
