@@ -53,9 +53,10 @@ $app->group('/event', function () use ($app) {
 	 * @method: GET
 	 * @todo: IMPLEMENT
 	 * @todo: need limits and ASC/DESC added
+	 *
+	 * @querystring: Same as single event below
 	 **/
 	$app->get('/', function () {
-		// echo getController($controller)->index();
 		echo "GET LIST OF EVENTS";
 	});
 
@@ -66,10 +67,11 @@ $app->group('/event', function () use ($app) {
 	 * @todo: IMPLEMENT
 	 *
 	 * @querystring:
-	 *     eventinfo = false        => optional, default true, returns rev info only
+	 *     eventinfo = false        => optional, default true, does not perform query for event name/datetime/status...
 	 *     revision = multiple pipe separated
 	 *         latest      => most recent rev, whether official or draft
-	 *         published   => get the "official" rev
+	 *         current     => get the "official" rev
+	 *         allreleased => get all the released revisions
 	 *         <int>       => get rev with id = <int>
 	 *         history     => all revs
 	 *             history_order   => ASC or DESC (default DESC, most recent)
@@ -80,9 +82,51 @@ $app->group('/event', function () use ($app) {
 	 *             history_after_ts  => <yyyymmddhhmmss> (default null) finds rev after timestamp
 	 *         new         => all revs since published
 	 */
-	$app->get('/:id', function ($id) {
-		// echo getController($controller)->index();
+	$app->get('/:id', function ($id) use ($app) {
 		echo "GET DATA ABOUT EVENT $id";
+
+		$ev = new \Spacewalk\Model\Event($id);
+		if ( $app->request->params('eventinfo') !== 'false' ) {
+			$ev->load();
+		}
+
+		switch ( $app->request->params('revision') ) {
+			case 'latest':
+				$ev->getLatestRev();
+				break;
+			
+			case 'current':
+				$ev->getCurrentRev();
+				break;
+			
+			case 'allreleased':
+				$ev->getAllReleasedRevs();
+				break;
+			
+			case 'new':
+				$ev->getNewRevs(); // gets revs since last release
+				break;
+			
+			case 'history':
+				$hist_params = array('order','limit','before_id','after_id','before_ts','after_ts');
+				$hist_param_values = array();
+				foreach($hist_params as $hp) {
+					if ($app->request->params('history_' . $hp)) {
+						$hist_param_values[$hp] = $app->request->params($hp);
+					}
+				}
+				$ev->getRevHistory( $hist_param_values );
+				break;
+						
+			default:
+				preg_match_all('/\d+/', $app->request->params('revision'), $rev_ids_requested);
+				$rev_ids_requested = $rev_ids_requested[0];
+				if ( count($rev_ids_requested) > 0 )
+					$ev->addRevisions( $rev_ids_requested );
+				break;
+		}
+
+		echo $ev->getJSON();
 	});
 
 
@@ -92,11 +136,15 @@ $app->group('/event', function () use ($app) {
 	 * @method: PUT
 	 * @todo: IMPLEMENT
 	 * 
-	 * user sends data for new event, returns event ID and no revision info (blank rev?)
+	 * user sends data for new event, returns event ID and no revision info
 	 **/
 	$app->put('/', function () {
-		// echo getController($controller)->index();
 		echo "CREATE AN EVENT";
+
+		$ev = new \Spacewalk\Model\Event();
+		$ev->loadParams( $app->request )->save();
+
+		return json_encode( array('event_id' => $new_id) );
 	});
 
 
@@ -109,8 +157,15 @@ $app->group('/event', function () use ($app) {
 	 * @todo: IMPLEMENT
 	 **/
 	$app->put('/:id', function ($id) {
-		// echo getController($controller)->index();
 		echo "UPDATE EVENT $id";
+
+		$ev = new \Spacewalk\Model\Event($id);
+		$ev->loadParams( $app->request )->save();
+
+		$new_rev_id = $ev->newRevision()->loadParams( $app->request )->save();
+
+		return json_encode( array('new_rev_id' => $new_rev_id) );
+
 	});
 
 
@@ -124,8 +179,13 @@ $app->group('/event', function () use ($app) {
 	 * @todo: IMPLEMENT
 	 **/
 	$app->put('/:id/release/:revid', function ($id,$revid) {
-		// echo getController($controller)->index();
 		echo "RELEASE revision $revid of event $id";
+
+		$ev = new /Spacewalk/Model/Event($id);
+		$ev->addRevisions( array($revid) );
+		$ev->revisions[0]->version = $ev->getNextVersion();
+
+		$ev->revision[0]->save();
 	});
 
 
@@ -138,8 +198,12 @@ $app->group('/event', function () use ($app) {
 	 * @todo: IMPLEMENT
 	 **/
 	$app->put('/:id/unrelease', function ($id) {
-		// echo getController($controller)->index();
 		echo "UNRELEASE event $id";
+
+		$ev = new /Spacewalk/Model/Event($id);
+		$current = $ev->getCurrentRev();
+		$current->version = null;
+		$current->save();
 	});
 
 
@@ -152,13 +216,12 @@ $app->group('/event', function () use ($app) {
 	 * @todo: IMPLEMENT
 	 **/
 	$app->delete('/:id', function ($id) {
-		// echo getController($controller)->index();
-		echo "DELETE event $id";
+		echo "DELETE event $id: I'm not bothering to create this method for now.";
 	});
 
 
 	/**
-	 * DELETE AN EVENT
+	 * UN-DELETE AN EVENT
 	 * @url: /api.php/event/:id/undelete
 	 * @method: DELETE
 	 * 
@@ -168,7 +231,7 @@ $app->group('/event', function () use ($app) {
 	 **/
 	$app->delete('/:id/undelete', function ($id) {
 		// echo getController($controller)->index();
-		echo "UN-DELETE event $id";
+		echo "UN-DELETE event $id: Also not bothering to create this for now...";
 	});
 
 }); // end event group (api.php/event)

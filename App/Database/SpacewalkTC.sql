@@ -6,15 +6,13 @@ CREATE TABLE event (
 
 	-- event ID
 	id							int unsigned AUTO_INCREMENT NOT NULL PRIMARY KEY,
-	
-	-- @TODO: Should this be GMT day number? Like GMT 104/10:40:00
-	`datetime`					varbinary(14),
-	
+		
 	-- name of the event...not sure if this is the EVA or the gather/config
 	-- event yet
 	name						varchar(255) NOT NULL,
 	
 	-- @pointer: revision->id
+	-- @deprecated : there is no point to this...revision.version handles this.
 	released_rev_id				int unsigned,
 
 	-- used to mark events as "deleted". Ordinary events have status=null
@@ -32,6 +30,9 @@ CREATE TABLE revision (
 	-- All drafts are of a particular event
 	-- @pointer: event->id
 	event_id					int unsigned NOT NULL,
+
+	-- @TODO: Should this be GMT day number? Like GMT 104/10:40:00
+	`datetime`					varbinary(14),
 
 	-- event version
 	version						smallint unsigned,

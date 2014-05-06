@@ -1,6 +1,26 @@
 <?php
 
-class Model_Revision extends Redrevision_SimpleModel { 
+namespace Spacewalk\Model;
+require_once "App/Model/Model.php";
+
+class revision extends Model { 
+
+	// database columns (id assumed)
+	protected $columns = array(
+		'event_id',
+		'datetime',
+		'version',
+		'jedi',
+		'overview',
+		'ori_rev_id',
+		'revision_ts',
+		'user_id',
+		'items_json'
+	);
+
+
+
+
 
 	public function updateModel ($params) {
 
@@ -32,6 +52,23 @@ class Model_Revision extends Redrevision_SimpleModel {
 		//@TODO: store use
 
 		return null; //????????
+	}
+
+	public function getAsArray () {
+		return array(
+			"id"          => $this->id,
+			"version"     => $this->version,
+			"jedi"        => $this->jedi,
+			"overview"    => $this->overview,
+			"ori_rev_id"  => $this->ori_rev_id,
+			"revision_ts" => $this->revision_ts,
+			"user_id"     => $this->user_id, // @todo: should this be more user info?
+			"items_json"  => $this->items_json
+		);
+	}
+
+	public function toJSON () {
+		return json_encode( $this->getAsArray() ); // @todo: isn't this parent functionality?
 	}
 
 }

@@ -2,11 +2,26 @@
 
 namespace Spacewalk\Model;
 
-class Base {
+/*
+get full model
+get json
+ */
+abstract class Model {
 
 	protected $db;
 
-	public function __construct () {
+	// models must define these
+	protected $table;
+	protected $columns;
+
+	// defaults: models should override as required
+	protected $indexlimit = 10;
+	protected $orderbycolumn = 'id';
+	protected $orderbydirection = 'DESC';
+
+
+	public function __construct ($table) {
+		$this->table = $table;
 		$this->db = $this->getDB();
 	}
 
@@ -26,11 +41,20 @@ class Base {
 
 	}
 
-	public function store () {
+	public function loadParams ( $slim_request ) {
+		foreach($this->columns as $col) {
+			if ($slim_request->param( $col ) ) {
+				$this->$col = $slim_request->param( $col );
+			}
+		}
+		return $this;
+	}
+
+	public function save () {
 		if ($this->id === null)
-			return $this->insert();
+			return $this->insertDB();
 		else
-			return $this->update();
+			return $this->updateDB();
 	}
 
 	protected function insertDB () {
@@ -71,13 +95,19 @@ class Base {
 	
 	}
 
-	public function toJSON () {
+	public function getAsArray () {
 		$out = array();
 		foreach($this->columns as $col) {
 			$out[$col] = $this->$col;
 		}
-		return json_encode($out);
+		return $out;
 	}
+
+	public function toJSON () {
+		return json_encode( $this->getAsArray() ); // @todo: isn't this parent functionality?
+	}
+
+
 
 	public function load ($id) {
 		$STH = $this->db->query("SELECT * FROM {$this->table} LIMIT 1");
