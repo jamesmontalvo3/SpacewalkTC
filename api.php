@@ -67,7 +67,6 @@ $app->group('/event', function () use ($app) {
 	 * @todo: IMPLEMENT
 	 *
 	 * @querystring:
-	 *     eventinfo = false        => optional, default true, does not perform query for event name/datetime/status...
 	 *     revision = multiple pipe separated
 	 *         latest      => most recent rev, whether official or draft
 	 *         current     => get the "official" rev
@@ -86,9 +85,7 @@ $app->group('/event', function () use ($app) {
 		echo "GET DATA ABOUT EVENT $id";
 
 		$ev = new \Spacewalk\Model\Event($id);
-		if ( $app->request->params('eventinfo') !== 'false' ) {
-			$ev->load();
-		}
+		$ev->load();
 
 		switch ( $app->request->params('revision') ) {
 			case 'latest':
@@ -112,7 +109,7 @@ $app->group('/event', function () use ($app) {
 				$hist_param_values = array();
 				foreach($hist_params as $hp) {
 					if ($app->request->params('history_' . $hp)) {
-						$hist_param_values[$hp] = $app->request->params($hp);
+						$hist_param_values[$hp] = $app->request->params('history_' . $hp);
 					}
 				}
 				$ev->getRevHistory( $hist_param_values );
