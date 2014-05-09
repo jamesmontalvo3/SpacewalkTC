@@ -5,6 +5,7 @@ error_reporting(-1);
 
 require 'vendor/autoload.php';
 require 'App/config.php';
+require 'App/Helper.php';
 
 // require 'App/Database/rb.phar';
 // R::setup($swalk_dbstring, $swalk_dbuser, $swalk_dbpass);
@@ -16,7 +17,7 @@ require 'App/config.php';
 // by an autoloader...
 // require_once "App/Model/Model_Event.php";
 // require_once "App/Model/Model_Revision.php";
-
+// define("SPACEWALK_JSON_OUTPUT_FORMAT", JSON_PRETTY_PRINT);
 
 $app = new \Slim\Slim(array(
 	"debug" => true,
@@ -46,6 +47,7 @@ function getController ($controller) {
  **/
 $app->group('/event', function () use ($app) {
 
+	require_once "App/Model/Event.php";
 
 	/**
 	 * GET LIST OF EVENTS
@@ -56,8 +58,9 @@ $app->group('/event', function () use ($app) {
 	 *
 	 * @querystring: Same as single event below
 	 **/
-	$app->get('/', function () {
-		echo "GET LIST OF EVENTS";
+	$app->get('/', function () use ($app) {
+		$ev = new \Spacewalk\Model\Event();
+		echo \Spacewalk\Helper::format_encode($ev->selectAll(), $app->request->params('format') );
 	});
 
 	/**
@@ -82,8 +85,8 @@ $app->group('/event', function () use ($app) {
 	 *         new         => all revs since published
 	 */
 	$app->get('/:id', function ($id) use ($app) {
-		echo "GET DATA ABOUT EVENT $id";
 
+		require_once "App/Model/Event.php";
 		$ev = new \Spacewalk\Model\Event($id);
 		$ev->load();
 
@@ -122,8 +125,7 @@ $app->group('/event', function () use ($app) {
 					$ev->addRevisions( $rev_ids_requested );
 				break;
 		}
-
-		echo $ev->getJSON();
+		echo \Spacewalk\Helper::format_encode($ev->getAsArray(), $app->request->params('format') );
 	});
 
 
@@ -135,13 +137,13 @@ $app->group('/event', function () use ($app) {
 	 * 
 	 * user sends data for new event, returns event ID and no revision info
 	 **/
-	$app->put('/', function () {
-		echo "CREATE AN EVENT";
-
+	$app->put('/', function () use ($app) {
 		$ev = new \Spacewalk\Model\Event();
-		$ev->loadParams( $app->request )->save();
+		$new_id = $ev->loadParams( $app->request )->save();
 
-		return json_encode( array('event_id' => $new_id) );
+		echo \Spacewalk\Helper::format_encode(
+			array('event_id' => $new_id), 
+			$app->request->params('format') );
 	});
 
 
@@ -153,16 +155,15 @@ $app->group('/event', function () use ($app) {
 	 * updates event info, creates new revision row if different from previous
 	 * @todo: IMPLEMENT
 	 **/
-	$app->put('/:id', function ($id) {
-		echo "UPDATE EVENT $id";
-
+	$app->put('/:id', function ($id) use ($app) {
 		$ev = new \Spacewalk\Model\Event($id);
 		$ev->loadParams( $app->request )->save();
 
 		$new_rev_id = $ev->newRevision()->loadParams( $app->request )->save();
 
-		return json_encode( array('new_rev_id' => $new_rev_id) );
-
+		echo \Spacewalk\Helper::format_encode(
+			array('new_rev_id' => $new_rev_id),
+			$app->request->params('format') );
 	});
 
 
@@ -176,13 +177,14 @@ $app->group('/event', function () use ($app) {
 	 * @todo: IMPLEMENT
 	 **/
 	$app->put('/:id/release/:revid', function ($id,$revid) {
-		echo "RELEASE revision $revid of event $id";
+		$ev = new \Spacewalk\Model\Event($id);
+		$ev->released_rev_id = $revid;
+		$ev->save();
 
-		$ev = new /Spacewalk/Model/Event($id);
-		$ev->addRevisions( array($revid) );
-		$ev->revisions[0]->version = $ev->getNextVersion();
-
-		$ev->revision[0]->save();
+		$rev = $ev->newRevision($revid);
+		$rev->load();
+		if ($rev->version == null)
+			$rev->set(array('version' => $ev->getNextVersion()))->save();
 	});
 
 
@@ -194,13 +196,9 @@ $app->group('/event', function () use ($app) {
 	 * (privileged) removes "released" from most recent released rev
 	 * @todo: IMPLEMENT
 	 **/
-	$app->put('/:id/unrelease', function ($id) {
-		echo "UNRELEASE event $id";
-
-		$ev = new /Spacewalk/Model/Event($id);
-		$current = $ev->getCurrentRev();
-		$current->version = null;
-		$current->save();
+	$app->put('/:id/unrelease/:revid', function ($id, $revid) {
+		$ev = new \Spacewalk\Model\Event($id);
+		$ev->load()->unreleaseRevision($revid);
 	});
 
 

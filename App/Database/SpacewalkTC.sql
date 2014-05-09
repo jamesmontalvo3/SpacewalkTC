@@ -31,8 +31,8 @@ CREATE TABLE revision (
 	-- @pointer: event->id
 	event_id					int unsigned NOT NULL,
 
-	-- @TODO: Should this be GMT day number? Like GMT 104/10:40:00
-	`datetime`					varbinary(14),
+	-- date like yyyy/ddd where ddd is the day number of the year
+	gmt_date					varbinary(8),
 
 	-- event version
 	version						smallint unsigned,
@@ -65,12 +65,6 @@ CREATE TABLE revision (
 
 CREATE INDEX key_event_id ON revision (event_id);
 
-ALTER TABLE event
-	ADD CONSTRAINT fk_event_released_rev_id 
-	FOREIGN KEY (released_rev_id) 
-	REFERENCES revision (id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE;
 
 ALTER TABLE revision
 	ADD CONSTRAINT fk_revision_event_id 

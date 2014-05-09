@@ -12,9 +12,10 @@ class Event extends Model {
 		"status"
 	);
 
-	public function __construct ($id) {
+	public function __construct ($id=null) {
 		parent::__construct("event");
-		$this->id = $id
+		$this->id = $id;
+		$this->revisions = array();
 	}
 
 
@@ -32,13 +33,14 @@ class Event extends Model {
 
 
 	public function getLatestRev () {
+		// require_once "/App/Model/Revision.php";
 
-		use Spacewalk\Model\Revision;
+		// use Spacewalk\Model;
 
 		$STH = $this->db->prepare(
 			"SELECT * FROM revision WHERE event_id = :event_id ORDER BY revision_ts DESC LIMIT 1"
 		);
-		$STH->setFetchMode(PDO::FETCH_CLASS, 'Spacewalk\Model\Revision');
+		$STH->setFetchMode(\PDO::FETCH_ASSOC); //, 'Spacewalk\Model\Revision');
 		$STH->execute(array( ':event_id' => $this->id ));
 
 		$this->revisions[] = $STH->fetch();
@@ -46,21 +48,23 @@ class Event extends Model {
 	}
 
 	public function getCurrentRev () {
-		use Spacewalk\Model\Revision;
+		// use Spacewalk\Model\Revision;
 
-		if ($this->released_rev_id) {
+		if ( isset($this->released_rev_id) && $this->released_rev_id ) {
 
 			$STH = $this->db->prepare(
 				"SELECT * FROM revision WHERE event_id = :event_id AND id = :rev_id LIMIT 1"
 			);
-			$STH->setFetchMode(PDO::FETCH_CLASS, 'Spacewalk\Model\Revision');
+			$STH->setFetchMode(\PDO::FETCH_ASSOC); //, 'Spacewalk\Model\Revision');
 			$STH->execute(array( 
 				':event_id' => $this->id,
 				':rev_id' => $this->released_rev_id
 			));
 
-			$this->revisions[] = $STH->fetch();
+			return $this->newRevision()->set($STH->fetch());
 		}
+		else
+			return null;
 		// else {
 		// 	$this->revisions[] = $this->newRevision();
 		// }
@@ -68,24 +72,24 @@ class Event extends Model {
 
 	public function getAllReleasedRevs () {
 
-		use Spacewalk\Model\Revision;
+		// use Spacewalk\Model\Revision;
 
 		// arbitrary limit 100, not likely to ever have that many versions
 		$STH = $this->db->prepare(
 			"SELECT * FROM revision WHERE event_id = :event_id AND version IS NOT NULL ORDER BY version DESC LIMIT 100"
 		);
-		$STH->setFetchMode(PDO::FETCH_CLASS, 'Spacewalk\Model\Revision');
+		$STH->setFetchMode(\PDO::FETCH_ASSOC); //, 'Spacewalk\Model\Revision');
 		$STH->execute(array( ':event_id' => $this->id ));
 
-		$this->revisions[] = $STH->fetchAll();
+		$this->revisions = $STH->fetchAll();
 
 	}
 
 	public function getNewRevs () {
-		$this->getCurrentRev();
-		$current_ts = $this->revisions[0]->revision_ts;
+		
+		$current_ts = $this->getCurrentRev()->revision_ts;
 
-		use Spacewalk\Model\Revision;
+		// use Spacewalk\Model\Revision;
 
 		// arbitrary limit 5000...if we think there are going to be a lot of revisions
 		// there should probably be pagination built in here...or this only shows ~100
@@ -93,13 +97,13 @@ class Event extends Model {
 		$STH = $this->db->prepare(
 			"SELECT * FROM revision WHERE event_id = :event_id AND revision_ts > :current_ts ORDER BY revision_ts DESC LIMIT 5000"
 		);
-		$STH->setFetchMode(PDO::FETCH_CLASS, 'Spacewalk\Model\Revision');
+		$STH->setFetchMode(\PDO::FETCH_ASSOC); //, 'Spacewalk\Model\Revision');
 		$STH->execute(array(
 			':event_id' => $this->id,
 			':current_ts' => $current_ts
 		));
 
-		$this->revisions[] = $STH->fetchAll(); // clear the released version out
+		$this->revisions = $STH->fetchAll(); // clear the released version out
 	}
 
 	// @params: 'order','limit','before_id','after_id','before_ts','after_ts'
@@ -112,7 +116,7 @@ class Event extends Model {
 	 * after_ts  => <yyyymmddhhmmss> (default null) finds rev after timestamp    */
 	public function getRevHistory( $hist_params ) {
 
-		use Spacewalk\Model\Revision;
+		// use Spacewalk\Model\Revision;
 
 		$query = "SELECT * FROM revision WHERE event_id = :event_id ";
 
@@ -123,14 +127,16 @@ class Event extends Model {
 			'after_ts'  => 'revision_ts > :after_ts'
 		);
 
+		$bind_params = array(':event_id' => $this->id);
+
 		foreach($hist_paginate_params as $param => $query_string) {
 			if ( isset($hist_params[$param]) ) {
 				$query .= ' AND ' . $query_string;
-				$STH->bindParam(':'.$param, $hist_params[$param]);
+				$bind_params[':'.$param] = $hist_params[$param];
 			}
 		}
 
-		if ( isset($hist_params['order']) && str_to_lower($hist_params['order']) == 'asc' )
+		if ( isset($hist_params['order']) && strtolower($hist_params['order']) == 'asc' )
 			$query .= ' ORDER BY revision_ts ASC';
 		else
 			$query .= ' ORDER BY revision_ts DESC';
@@ -138,12 +144,11 @@ class Event extends Model {
 		if ( isset($hist_params['limit']) && intval($hist_params['limit']) )
 			$query .= ' LIMIT ' . intval($hist_params['limit']);
 		else
-			$query .= ' LIMIT 20'
+			$query .= ' LIMIT 20';
 
 		$STH = $this->db->prepare( $query );
-		$STH->setFetchMode(PDO::FETCH_CLASS, 'Spacewalk\Model\Revision');
-		$STH->bindParam(':event_id', $this->$id);
-		$STH->execute();
+		$STH->setFetchMode(\PDO::FETCH_ASSOC); //, 'Spacewalk\Model\Revision');
+		$STH->execute($bind_params);
 
 		$this->revisions[] = $STH->fetchAll();
 
@@ -156,26 +161,58 @@ class Event extends Model {
 		    return intval($value);
 		}, $rev_ids_requested);
 
-		use Spacewalk\Model\Revision;
+		$rev_ids = array_fill(0, count($rev_ids_requested), 'id = ?');
+		$rev_ids = implode(' OR ', $rev_ids);
+		// use Spacewalk\Model\Revision;
 
+		array_unshift($rev_ids_requested, $this->id);
+		
 		// arbitrary limit 100, not likely to ever have that many versions
 		$STH = $this->db->prepare(
-			"SELECT * FROM revision WHERE event_id = ? AND $rev_ids ORDER BY revision_ts DESC LIMIT 100"
+			"SELECT * FROM revision WHERE event_id = ? AND ($rev_ids) ORDER BY revision_ts DESC LIMIT 100"
 		);
-		$STH->setFetchMode(PDO::FETCH_CLASS, 'Spacewalk\Model\Revision');
-		$STH->execute(array_unshift($rev_ids_requested, $this->id));
+		$STH->setFetchMode(\PDO::FETCH_ASSOC); //, 'Spacewalk\Model\Revision');
+		$STH->execute($rev_ids_requested);
 
 		$this->revisions[] = $STH->fetchAll();
 
 	}
 
 
-	public function newRevision () {
+	public function newRevision ($revid=null) {
 
 		if ( ! isset($this->revisions) )
 			$this->revisions = array();
+		require_once "App/Model/Revision.php";
+		$rev = new Revision();
+		$rev->event_id = $this->id;
+		if ($revid)
+			$rev->id = $revid;
+		return $this->revisions[] = $rev;
+	}
 
-		return $this->revisions[] = new Revision();
+	public function getNextVersion () {
+		$STH = $this->db->prepare(
+			"SELECT version FROM revision WHERE event_id = :event_id AND version IS NOT NULL ORDER BY version DESC LIMIT 1"
+		);
+		$STH->setFetchMode(\PDO::FETCH_ASSOC); //, 'Spacewalk\Model\Revision');
+		$STH->execute(array(':event_id'=>$this->id));
+		$row = $STH->fetch();
+		if ($row)
+			return intval($row['version']) + 1;
+		else
+			return 1;
+	}
+
+	public function unreleaseRevision ($rev_id) {
+		$current = $this->getCurrentRev();
+		if ($current->id == $rev_id) {
+			$STH = $this->db->prepare( "UPDATE {$this->table} SET released_rev_id = NULL WHERE id = :event_id" );
+			$STH->execute(array(':event_id'=>$this->id));
+
+			$STH = $this->db->prepare( "UPDATE {$current->table} SET version = NULL WHERE id = :rev_id" );
+			$STH->execute(array(':rev_id'=>$current->id));
+		}
 	}
 
 
@@ -183,16 +220,19 @@ class Event extends Model {
 
 		$ev = parent::getAsArray();
 
-		if ($this->released_rev) {
-			$ev['released_rev'] = $this->released_rev->getAsArray();
-		}
-		if ($this->latest_rev) {
-			$ev['latest_rev'] = $this->latest_rev->getAsArray();
-		}
+		// if ($this->released_rev) {
+		// 	$ev['released_rev'] = $this->released_rev->getAsArray();
+		// }
+		// if ($this->latest_rev) {
+		// 	$ev['latest_rev'] = $this->latest_rev->getAsArray();
+		// }
 		if (is_array($this->revisions) && count($this->revisions) > 0 ) {
 			$ev['revisions'] = array();
 			foreach($this->revisions as $rev) {
-				$ev['revisions'][] = $rev->getAsArray();
+				if ( is_array($rev) )
+					$ev['revisions'][] = $rev;
+				else
+					$ev['revisions'][] = $rev->getAsArray();
 			}
 		}
 

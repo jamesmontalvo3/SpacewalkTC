@@ -8,7 +8,7 @@ class revision extends Model {
 	// database columns (id assumed)
 	protected $columns = array(
 		'event_id',
-		'datetime',
+		'gmt_date',
 		'version',
 		'jedi',
 		'overview',
@@ -18,14 +18,18 @@ class revision extends Model {
 		'items_json'
 	);
 
+	public function __construct ($id=null) {
+		parent::__construct("revision");
+		$this->id = $id;
+	}
 
 
 
-
+	/*
 	public function updateModel ($params) {
 
 		//@TODO: Simplify this with proper Session handling...
-		$user = \R::findOne( 'user', ' username = ? ', [ $_SERVER['REMOTE_ADDR'] ])
+		$user = \R::findOne( 'user', ' username = ? ', [ $_SERVER['REMOTE_ADDR'] ]);
 
 		// get the RedrevisionsPHP "bean" for this model
 		$revision = $this->unbox();
@@ -52,20 +56,20 @@ class revision extends Model {
 		//@TODO: store use
 
 		return null; //????????
-	}
+	}*/
 
-	public function getAsArray () {
-		return array(
-			"id"          => $this->id,
-			"version"     => $this->version,
-			"jedi"        => $this->jedi,
-			"overview"    => $this->overview,
-			"ori_rev_id"  => $this->ori_rev_id,
-			"revision_ts" => $this->revision_ts,
-			"user_id"     => $this->user_id, // @todo: should this be more user info?
-			"items_json"  => $this->items_json
-		);
-	}
+	// public function getAsArray () {
+	// 	return array(
+	// 		"id"          => $this->id,
+	// 		"version"     => $this->version,
+	// 		"jedi"        => $this->jedi,
+	// 		"overview"    => $this->overview,
+	// 		"ori_rev_id"  => $this->ori_rev_id,
+	// 		"revision_ts" => $this->revision_ts,
+	// 		"user_id"     => $this->user_id, // @todo: should this be more user info?
+	// 		"items_json"  => $this->items_json
+	// 	);
+	// }
 
 	public function toJSON () {
 		return json_encode( $this->getAsArray() ); // @todo: isn't this parent functionality?
