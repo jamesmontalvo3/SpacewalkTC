@@ -18,17 +18,12 @@ abstract class Base {
 
 	// index
 	public function index () {
-		$m = \R::findAll( 
-			$this->table,
-			" ORDER BY {$this->orderbycolumn} {$this->orderbydirection} LIMIT {$this->indexlimit} "
-		);
-		return json_encode( \R::exportAll( $m ) );
+		return json_encode( $this->model->selectAll() );
 	}
 
 	// read
 	public function read ($id) {
-		$m = \R::load( $this->table, $id );
-		return json_encode( $m->export() );
+		return json_encode( $this->model->load($id) );
 	}
 
 	// create
@@ -51,6 +46,6 @@ abstract class Base {
 		\R::trash( \R::load( $this->table, $id ) );
 	}
 
-	abstract protected function updateModel ($id, $params);
+	// abstract protected function updateModel ($id, $params);
 
 }

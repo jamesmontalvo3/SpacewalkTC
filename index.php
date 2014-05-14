@@ -1,196 +1,74 @@
-<?php
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=”utf-8”> 
+		<title>SpacewalkTC</title>
+		<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.css">
+	    <style>
+	      body {
+	        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+	      }
+	    </style>
+	  <!--  <link href="../assets/css/bootstrap-responsive.css" rel="stylesheet"> -->
 
-ini_set('display_errors',1);
-error_reporting(-1);
+	</head>
+	<body>
 
-require 'vendor/autoload.php';
-require 'App/config.php';
+		<div class="navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-inner">
+			<div class="container">
+			<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="brand" href="#">SpacewalkTC</a>
+			<div class="nav-collapse collapse">
+				<ul class="nav">
+					<li class="active"><a href="#">Events</a></li>
+					<li><a href="#about">About</a></li>
+					<li><a href="#contact">Contact</a></li>
+				</ul>
+			</div><!--/.nav-collapse -->
+			</div>
+			</div>
+		</div>
 
-require 'App/Database/rb.phar';
-R::setup($swalk_dbstring, $swalk_dbuser, $swalk_dbpass);
-R::freeze( true );
-
-
-
-// models that need to be properly included in controller files or be handled
-// by an autoloader...
-require_once "App/Model/Model_Event.php";
-
-
-
-/*
-	required actions:
-
-App        : Send page
-
-revision
-	read   : Yes : View a revision
-	index  : Yes : See list of revisions for a particular event
-	create : ?   : Do you ever say "create me a new revision"? I don't think so...you get the latest, revise it, and send changes
-	update : NO  : revisions are frozen. Users create revisions of revisions each time they save
-	delete : NO  : user cannot delete...revisions table will get cleaned out when revs very old
-
-itemdefault
-	read   : NO  : Only read-all required for now
-	index  : Yes : Each initial page load get list of defaults (and perhaps check for changes periodically?)
-	create : Yes : each time a user uses an item without a default, it will create and ask for values
-	update : Yes : once created only should need to update. Can set values to zero/null/blank.
-	delete : NO  : Admin may need to delete at some point if a P/N gets messed up in IMS
-
-userlast
-	read   : 
-	index  : 
-	create : 
-	update : 
-	delete : 
-
-user
-	read   : ?
-	index  : ?
-	create : ?
-	update : ?
-	delete : ?
-
- */
-
-$app = new \Slim\Slim(array(
-	"debug" => true,
-	'log.enabled' => true
-));
-
-$app->get('/', function() {
-	echo "Hello, World";
-});
-
-// @TODO: this should move to a helpers class or something...
-function getController ($controller) {
-	require_once "App/Controller/$controller.php";
-	$ControllerClass  = "\\Spacewalk\\Controller\\$controller";
-	$reflection = new \ReflectionClass($ControllerClass);
-	return $reflection->newInstance(); 
-}
+		<div class="container" id="container">
 
 
-// index  : Show all events @TODO will this work?
-// NOTE (BUG?): for some reason the trailing slash is needed on this in the
-// presence of the other get method with /:controller/:id
-$app->get('/:controller/', function ($controller) {
-	echo getController($controller)->index();
-});
+		</div> <!-- /container -->
 
-// read   :
-$app->get('/:controller/:id', function ($controller, $id) {
-	echo getController($controller)->read($id);
-});
+		<!-- Templates -->
+		<script type="text/template" id="View-EventListViewItem">
+			<a href="#" class="event-name"><%= event.name %></a> - <%= event.revision.date %>
+		</script>
+		<script type="text/template" id="View-EventView">
+			<h2><%= event.name %></h2>
+			<ul style="list-style-type:none;">
+				<li><label>Date:</label> <%= event.revision.gmt_date %></li>
+				<li><%= event.revision.version %></li>
+				<li><%= event.revision.jedi %></li>
+				<li><%= event.revision.revision_ts %></li>
+				<li><%= event.revision.user_id %></li>
+			</ul>
+			<p><%= event.revision.overview %></p>
+			<p><%= event.revision.items_json %></p>
+		</script>
 
-// create : 
-// NOTE (BUG?): for some reason the trailing slash is needed on this in the
-// presence of the other post method with /:controller/:id
-$app->put('/:controller/', function ($controller) use ($app) {
-	echo getController($controller)->create( $app->request->put() );
-});
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="bootstrap/js/bootstrap.js"></script>
+		<script src="App/Libs/json2.js"></script>
+		<script src="App/Libs/underscore-min.js"></script>
+		<script src="App/Libs/backbone-min.js"></script>
+		<script src="App/main.js"></script>
+	</body>
+</head><?php
 
-// update :
-$app->put('/:controller/:id', function ($controller, $id) use ($app) {
-	echo getController($controller)->update($id, $app->request->put() );
-});
+// ini_set('display_errors',1);
+// error_reporting(-1);
 
-// delete : 
-$app->delete('/:controller/:id', function ($controller, $id) {
-	echo getController($controller)->delete($id);
-});
+// require 'vendor/autoload.php'; // @TODO: do we want to load slim for this?
+// require 'App/config.php';
 
-$app->run();
-
-
-
-
-
-
-// $b = R::dispense( 'book' );
-
-// $b->title = 'Learn to Program';
-// $b->rating = 10;
-// $b['price'] = 29.99; //you can use array notation as well
-
-// $id = R::store( $b );
-
-// $nb = R::load( 'book', $id );
-
-
-
-
-// requires index.php in place...
-// $app->get('/hello/:name', function ($name) {
-//     echo "Hello, $name. Do you like book ID #$id?";
-// });
-
-// $app->get('/makeevent', function () {
-//     $e = R::dispense( 'event' );
-// 	$e->datetime = "20140423000000";
-// 	$e->name = "US EVA 26b";
-// 	$id = R::store( $e );
-// 	echo "done. ID = $id";
-// });
-
-
-// $app->get('/book/:id/:title/:rating/:price', function ($id,$title,$rating,$price) {
-	// $b = R::load('book', $id);
-	// $b->title = $title;
-	// $b->rating = $rating;
-	// $b->price = $price;
-	// $b->qty = 13465143;
-	// R::store( $b );
-	// echo "DONE";
-	// //echo"<pre>";print_r($b);echo"</pre>";
-// });
-
-// $app->get('/books', function() use ($app) {
-	// // $bs = R::findAll( 'book' );
-	// // $ar = R::exportAll( $bs );
-	
-	// $b = R::dispense( 'book', 3 );
-	// $app->response->headers->set('Content-Type', 'application/json');
-	// echo json_encode($b);
-	
-// });
-
-
-/*
-
-$app->group('/event', function () use ($app) {
-
-	// read   :
-	// $.ajax("http://localhost/SpacewalkTC/45", {type:"get"});
-    $app->get('/:id', function ($id) {
-    	echo "read ($id)";
-    });
-
-	// index  : Show all events @TODO will this work?
-	// $.ajax("http://localhost/SpacewalkTC/", {type:"get"});
-    $app->get('/', function () {
-    	echo "index";
-    });
-
-	// create : PUT or POST?
-	// $.ajax("http://localhost/SpacewalkTC/", {type:"post"});
-  	$app->post('/', function () {
-  		echo "create";
-    });
-
-	// update : PUT or POST?
-	// $.ajax("http://localhost/SpacewalkTC/45", {type:"post"});
-    $app->post('/:id', function ($id) {
-    	echo "update ($id)";
-    });
-
-	// delete : 
-	// $.ajax("http://localhost/SpacewalkTC/45", {type:"delete"});
-    $app->delete('/:id', function ($id) {
-    	echo "delete ($id)";
-    });
-
-
-});
-
-*/
+?>

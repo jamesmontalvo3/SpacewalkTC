@@ -6,20 +6,19 @@ CREATE TABLE event (
 
 	-- event ID
 	id							int unsigned AUTO_INCREMENT NOT NULL PRIMARY KEY,
-	
-	-- @TODO: Should this be GMT day number? Like GMT 104/10:40:00
-	`datetime`						varbinary(14),
-	
+		
 	-- name of the event...not sure if this is the EVA or the gather/config
 	-- event yet
 	name						varchar(255) NOT NULL,
 	
 	-- @pointer: revision->id
-	released_rev_id				int unsigned
+	-- @deprecated : there is no point to this...revision.version handles this.
+	released_rev_id				int unsigned,
+
+	-- used to mark events as "deleted". Ordinary events have status=null
+	status						varchar(32) DEFAULT NULL
 				
-) 
-ENGINE=InnoDB, 
-DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
 
 -- indices?
 
@@ -31,6 +30,9 @@ CREATE TABLE revision (
 	-- All drafts are of a particular event
 	-- @pointer: event->id
 	event_id					int unsigned NOT NULL,
+
+	-- date like yyyy/ddd where ddd is the day number of the year
+	gmt_date					varbinary(8),
 
 	-- event version
 	version						smallint unsigned,
@@ -48,12 +50,12 @@ CREATE TABLE revision (
 	-- must have started from somewhere. 
 	-- Also note that each time the user saves a draft, that new draft ID will
 	-- be inserted in the `userlast` table.
-	ori_rev						int unsigned,
+	ori_rev_id					int unsigned,
 	-- No longer required: ori_version					int unsigned,
 	
 	revision_ts					binary(14) NOT NULL,
 	
-	username					varchar(16),
+	user_id						varchar(16),
 	
 	-- set to NULL when a released version? Or store pre-built JSON here so it can
 	-- just be sent on to the client?
@@ -63,12 +65,6 @@ CREATE TABLE revision (
 
 CREATE INDEX key_event_id ON revision (event_id);
 
-ALTER TABLE event
-	ADD CONSTRAINT fk_event_released_rev_id 
-	FOREIGN KEY (released_rev_id) 
-	REFERENCES revision (id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE;
 
 ALTER TABLE revision
 	ADD CONSTRAINT fk_revision_event_id 
@@ -79,7 +75,7 @@ ALTER TABLE revision
 
 
 
-CREATE TABLE itemdefault (
+CREATE TABLE item (
 
 	-- Required for Laravel
 	id							int unsigned NOT NULL PRIMARY KEY,
@@ -89,7 +85,7 @@ CREATE TABLE itemdefault (
 	ims_pn						varchar(32) NOT NULL,
 	
 	-- text to display
-	display_text				varchar(255) NOT NULL default '',
+	default_text				varchar(255) NOT NULL default '',
 	allow_multiple_qty			boolean default 0
 
 
@@ -101,31 +97,6 @@ CREATE TABLE itemdefault (
 	INDICES?
 */
 
-
--- used to indicate where a user last left off on a particular event. If they
--- last edited draft ID 2352 they will be given that as a starting point. If
--- they lasted edited version 3 they will be given that. Every time a user
--- saves a draft the new draft ID will be inserted here. 
-CREATE TABLE userlast (
-
-	-- useless, but required by RedBeansPHP...
-	id							int unsigned NOT NULL PRIMARY KEY,
-
-	-- user id
-	u_id						int unsigned NOT NULL,
-
-	-- event id
-	e_id						int unsigned NOT NULL,
-	
-	-- rev id
-	r_id						int unsigned NOT NULL
-	
-	-- version number
-	-- NO longer necessary: version						int unsigned
-
-) ENGINE=InnoDB, DEFAULT CHARSET=utf8;
-
--- @TODO: u_id/e_id combination is UNIQUE! Unique Key.
 
 
 CREATE TABLE `user` (
