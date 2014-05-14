@@ -40,10 +40,21 @@
 		</div> <!-- /container -->
 
 		<!-- Templates -->
-		<script type="text/template" id="this-is-a-test">
-			<a href="#" class="event-name"><%= event.name %></a>
+		<script type="text/template" id="View-EventListViewItem">
+			<a href="#" class="event-name"><%= event.name %></a> - <%= event.revision.date %>
 		</script>
-
+		<script type="text/template" id="View-EventView">
+			<h2><%= event.name %></h2>
+			<ul style="list-style-type:none;">
+				<li><label>Date:</label> <%= event.revision.gmt_date %></li>
+				<li><%= event.revision.version %></li>
+				<li><%= event.revision.jedi %></li>
+				<li><%= event.revision.revision_ts %></li>
+				<li><%= event.revision.user_id %></li>
+			</ul>
+			<p><%= event.revision.overview %></p>
+			<p><%= event.revision.items_json %></p>
+		</script>
 
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 		<script src="bootstrap/js/bootstrap.js"></script>

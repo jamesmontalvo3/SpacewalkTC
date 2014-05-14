@@ -240,6 +240,58 @@ class Event extends Model {
 	}
 
 
+	public function selectAll() {
+		
+		// get event information
+		$event_rows = parent::selectAll();
+
+		// make $events array indexed by event id
+		// create list of event IDs to be used to query for latest revisions
+		// create list of released rev IDs to be used to query for most recent released revisions
+		$events = array();
+		$event_ids = array();
+		$released_rev_ids = array();
+		foreach($event_rows as $row) {
+			$row['revisions'] = array();
+			$events[ $row['id'] ] = $row;
+			$event_ids[] = $row['id'];
+			if ( $row['released_rev_id'] != NULL )
+				$released_rev_ids[] = $row['released_rev_id'];
+		}
+		unset($row);
+		$event_ids = implode(',', $event_ids);
+		$released_rev_ids = implode(',', $released_rev_ids);
+		
+		// get the latest revision of each of these events
+		$STH = self::getDB()->query(
+			"SELECT rev.* FROM revision rev
+			INNER JOIN 
+				(SELECT event_id, MAX(id) AS LatestRev 
+				FROM revision
+				GROUP BY event_id) groupedrev 
+			ON rev.event_id = groupedrev.event_id AND rev.id = groupedrev.LatestRev
+			WHERE rev.event_id IN ($event_ids)
+
+			UNION
+
+			SELECT rev.* FROM revision rev WHERE id IN ($released_rev_ids);
+			"
+		);
+		$STH->setFetchMode(\PDO::FETCH_ASSOC);
+
+		while ($rev = $STH->fetch()) {
+			$events[ $rev['event_id'] ]['revisions'][] = $rev;
+		}
+
+		// strip $id as key from array (affects JSON-ification)
+		$out = array();
+		foreach($events as $id => $data)
+			$out[] = $data;
+
+		return $out;
+
+	}
+
 }
 
 

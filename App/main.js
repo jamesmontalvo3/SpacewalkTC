@@ -22,13 +22,40 @@
 		defaults : {
 			name : "US EVA TBD"
 		},
-		url : "api.php/event"
+		url : "api.php/event",
+		constructor : function () {
+			// console.log("constructor");
+			// console.log(arguments);
+			Backbone.Model.apply(this, arguments);
+			this.revisions = new RevisionList(arguments[0].revisions)
+		},
+		getEventDate : function() {
+			console.log( this.revisions.last() );
+			return (this.revisions.length > 0) ? this.revisions.last().get('gmt_date') : "";
+		}
+	});
+
+	var Revision = Backbone.Model.extend({
+		defaults : {
+			event_id : null,
+			gmt_date : "",
+			jedi : "XX-XXXX",
+			overview : "",
+			revision_ts : "now",
+			user_id : 1,
+			items_json : "[]"
+		}
+	});
+
+	var RevisionList = Backbone.Collection.extend({
+		model : Revision,
+		comparator : "id" // @todo: @fixme: this should compare timestamps, probably...
 	});
 
 	var EventList = Backbone.Collection.extend({
 		model : Event,
 		url : "api.php/event",
-		
+
 		parse : function (response) {
 			console.log(response);
 			return response;
@@ -41,7 +68,7 @@
 			'click a.event-name' : 'loadEvent'
 		},
 
-		template : _.template( $('#this-is-a-test').html(), null, { variable : 'event' } ),
+		template : _.template( $('#View-EventListViewItem').html(), null, { variable : 'event' } ),
 
 		initialize : function () {
 			// console.log("EventListViewItem.initialize()");
@@ -57,15 +84,18 @@
 		},
 
 		render : function () {
-			// console.log("EventListViewItem.render()");
+			var viewModel = this.model.attributes;
+			viewModel.revision = {
+				date : this.model.getEventDate()
+			};
 
-			this.$el.html(this.template(this.model.attributes));
+			this.$el.html(this.template( viewModel ));
 			return this;
 		},
 
 		loadEvent : function () {
 			alert(this.model.get('name'));
-			// new EventView();
+			new EventView({ model : this.model });
 		}
 
 	});
@@ -75,7 +105,6 @@
 		collection : null,
 
 		initialize : function () {
-			console.log("  EventListView.intialize()");
 		    _.bindAll(this, 'render');
 
 			this.collection = new EventList();
@@ -108,7 +137,6 @@
 			
 			var container = document.createDocumentFragment();
 
-			// console.log("  EventListView.render()");
 			this.collection.each(function(eventModel) {
 				// console.log(eventModel);
 				eventListViewItem = new EventListViewItem({ model: eventModel });
@@ -129,12 +157,20 @@
 	var EventView = Backbone.View.extend({
 		el : '#container',
 
-		initialize : function () {
+		template : _.template( $('#View-EventView').html(), null, { variable : 'event' } ),
 
+		initialize : function () {
+		    _.bindAll(this, 'render');
+
+		   this.render();
 		},
 
 		render : function () {
+			var viewModel = this.model.attributes;
+			viewModel.revision = this.model.revisions.last().attributes;
 
+			this.$el.html(this.template( viewModel ));
+			return this;
 		}
 
 	});

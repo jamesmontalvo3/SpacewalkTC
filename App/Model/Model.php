@@ -151,13 +151,6 @@ abstract class Model {
 		);
 		$STH->setFetchMode(\PDO::FETCH_ASSOC);
 
-		// $out = array();
-		// while($row = $STH->fetch()) {
-		// 	$out[] = $row;
-		// }
-		// echo "<pre>";
-		// print_r( $STH->fetchAll() );
-		// echo "</pre>";
 		return $STH->fetchAll();
 
 	}
