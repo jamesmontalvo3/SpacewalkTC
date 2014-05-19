@@ -94,8 +94,8 @@
 		},
 
 		loadEvent : function () {
-			alert(this.model.get('name'));
-			new EventView({ model : this.model });
+			new EventEditView({ model : this.model });
+			// new EventView({ model : this.model });
 		}
 
 	});
@@ -168,6 +168,49 @@
 		render : function () {
 			var viewModel = this.model.attributes;
 			viewModel.revision = this.model.revisions.last().attributes;
+
+			this.$el.html(this.template( viewModel ));
+			return this;
+		}
+
+	});
+
+	var EventEditView = Backbone.View.extend({
+		el : '#container',
+
+		template : _.template( $('#View-EventEditView').html(), null, { variable : 'event' } ),
+
+		events : {
+			"change .simple-input" : fieldChanged,
+			"change .gmt-date" : gmtFieldChanged
+		},
+
+		initialize : function () {
+		    _.bindAll(this, 'render');
+
+		   this.render();
+		},
+
+		fieldChanged : function (e) {
+			var field = $(e.currentTarget),
+			    data = {};
+			data[field.attr('id')] = field.val();
+			this.model.set(data);
+		},
+
+		gmtFieldChanged : function (e) {
+			
+			
+			this.model.set(data);
+		}
+
+		render : function () {
+			var viewModel = this.model.attributes;
+			viewModel.revision = this.model.revisions.last().attributes;
+			var dateInfo = viewModel.revision.gmt_date.split("/");
+			console.log(viewModel.revision);
+			viewModel.revision.year = dateInfo[0];
+			viewModel.revision.day = dateInfo[1];
 
 			this.$el.html(this.template( viewModel ));
 			return this;

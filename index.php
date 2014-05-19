@@ -8,6 +8,15 @@
 	      body {
 	        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
 	      }
+	      #input-event-date-year {
+	      	width: 50px;
+	      }
+	      #input-event-date-day {
+	      	width: 40px;
+	      }
+	      textarea {
+	      	width: 100%;
+	      }
 	    </style>
 	  <!--  <link href="../assets/css/bootstrap-responsive.css" rel="stylesheet"> -->
 
@@ -40,9 +49,13 @@
 		</div> <!-- /container -->
 
 		<!-- Templates -->
+
+		<!-- View-EventListViewItem -->
 		<script type="text/template" id="View-EventListViewItem">
 			<a href="#" class="event-name"><%= event.name %></a> - <%= event.revision.date %>
 		</script>
+
+		<!--  View-EventView  -->
 		<script type="text/template" id="View-EventView">
 			<h2><%= event.name %></h2>
 			<ul style="list-style-type:none;">
@@ -54,6 +67,23 @@
 			</ul>
 			<p><%= event.revision.overview %></p>
 			<p><%= event.revision.items_json %></p>
+		</script>
+
+		<!--  View-EventEditView  -->
+		<script type="text/template" id="View-EventEditView">
+			<h2><%= event.name %></h2>
+			<ul style="list-style-type:none;">
+				<li>
+					<span>Date:</span> <input type="text" id="input-event-date-year" class="gmt-date" value="<%= event.revision.year %>" />
+					<!-- slash between year and day--> /
+					<input type="text" id="input-event-date-day" class="gmt-date" value="<%= event.revision.day %>" />
+				</li>
+				<li><span>Message #:</span> <input type="text" id="input-event-jedi" class="simple-input" value="<%= event.revision.jedi %>" /></li>
+			</ul>
+			<h3>Overview</h3>
+			<p><textarea id="input-event-overview" class="simple-input"><%= event.revision.overview %></textarea></p>
+			<h3>Tool Configuration</h3>
+			<p><textarea id="input-event-items-json" class="simple-input"><%= event.revision.items_json %></textarea></p>
 		</script>
 
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
