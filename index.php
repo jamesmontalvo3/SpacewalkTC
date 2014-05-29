@@ -8,10 +8,10 @@
 	      body {
 	        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
 	      }
-	      #input-event-date-year {
+	      #input-event-year {
 	      	width: 50px;
 	      }
-	      #input-event-date-day {
+	      #input-event-day {
 	      	width: 40px;
 	      }
 	      textarea {
@@ -74,16 +74,16 @@
 			<h2><%= event.name %></h2>
 			<ul style="list-style-type:none;">
 				<li>
-					<span>Date:</span> <input type="text" id="input-event-date-year" class="gmt-date" value="<%= event.revision.year %>" />
+					<span>Date:</span> <input type="text" id="input-event-year" value="<%= event.revision.year %>" />
 					<!-- slash between year and day--> /
-					<input type="text" id="input-event-date-day" class="gmt-date" value="<%= event.revision.day %>" />
+					<input type="text" id="input-event-day" value="<%= event.revision.day %>" />
 				</li>
-				<li><span>Message #:</span> <input type="text" id="input-event-jedi" class="simple-input" value="<%= event.revision.jedi %>" /></li>
+				<li><span>Message #:</span> <input type="text" id="input-event-jedi" value="<%= event.revision.jedi %>" /></li>
 			</ul>
 			<h3>Overview</h3>
-			<p><textarea id="input-event-overview" class="simple-input"><%= event.revision.overview %></textarea></p>
+			<p><textarea id="input-event-overview"><%= event.revision.overview %></textarea></p>
 			<h3>Tool Configuration</h3>
-			<p><textarea id="input-event-items-json" class="simple-input"><%= event.revision.items_json %></textarea></p>
+			<p><textarea id="input-event-items-json"><%= event.revision.items_json %></textarea></p>
 		</script>
 
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>

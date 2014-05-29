@@ -22,7 +22,7 @@
 		defaults : {
 			name : "US EVA TBD"
 		},
-		url : "api.php/event",
+		urlRoot : "api.php/event/",
 		constructor : function () {
 			// console.log("constructor");
 			// console.log(arguments);
@@ -44,7 +44,8 @@
 			revision_ts : "now",
 			user_id : 1,
 			items_json : "[]"
-		}
+		},
+		url : "api.php/event"
 	});
 
 	var RevisionList = Backbone.Collection.extend({
@@ -84,7 +85,7 @@
 		},
 
 		render : function () {
-			var viewModel = this.model.attributes;
+			var viewModel = this.model.clone().attributes;
 			viewModel.revision = {
 				date : this.model.getEventDate()
 			};
@@ -166,7 +167,7 @@
 		},
 
 		render : function () {
-			var viewModel = this.model.attributes;
+			var viewModel = this.model.clone().attributes;
 			viewModel.revision = this.model.revisions.last().attributes;
 
 			this.$el.html(this.template( viewModel ));
@@ -181,8 +182,11 @@
 		template : _.template( $('#View-EventEditView').html(), null, { variable : 'event' } ),
 
 		events : {
-			"change .simple-input" : fieldChanged,
-			"change .gmt-date" : gmtFieldChanged
+			"change #input-event-year" : "createRevision",
+			"change #input-event-day" : "createRevision",
+			"change #input-event-jedi" : "createRevision",
+			"change #input-event-overview" : "createRevision",
+			"change #input-event-items-json" : "createRevision"
 		},
 
 		initialize : function () {
@@ -195,17 +199,44 @@
 			var field = $(e.currentTarget),
 			    data = {};
 			data[field.attr('id')] = field.val();
-			this.model.set(data);
+			this.model.revision.set(data);
+			console.log(this.model);
 		},
 
 		gmtFieldChanged : function (e) {
 			
 			
-			this.model.set(data);
-		}
+			//this.model.set(data);
+		},
+
+		createRevision : function () {
+			var data = {
+				gmt_date : $("#input-event-year").val() + '/' + $("#input-event-day").val(),
+				jedi : $("#input-event-jedi").val(),
+				overview : $("#input-event-overview").val(),
+				items_json : $("#input-event-items-json").val()
+			};
+			this.model.revisions.add(data);
+			window.test = this.model;
+
+			/*
+			Added to revision being saved just prior to being sent to server
+			 - ori_rev_id
+			     - retrieved from event.lastSavedId just before saving
+			     - event.lastSavedId updated from each save-response
+
+			Handled by server:
+			 - event_id (passed as part of URL, e.g. api.php/events/:id )
+			 - id (generated when new revision saved)
+			 - version (generated when revision marked released)
+			 - revision_ts
+			 - user_id
+			*/
+
+		},
 
 		render : function () {
-			var viewModel = this.model.attributes;
+			var viewModel = this.model.clone().attributes;
 			viewModel.revision = this.model.revisions.last().attributes;
 			var dateInfo = viewModel.revision.gmt_date.split("/");
 			console.log(viewModel.revision);

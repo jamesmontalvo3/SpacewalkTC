@@ -23,6 +23,13 @@ class revision extends Model {
 		$this->id = $id;
 	}
 
+	public function save () {
+		$this->event_id = ???;
+		$this->ori_rev_id = ???;
+		$this->revision_ts = ???;
+		$this->user_id = ???;
+		parent::save();
+	}
 
 
 	/*
