@@ -26,6 +26,7 @@ Misc Notes
     * Later perhaps generate IPV XML procedure?
 * IMS integration
 * Limited Life
+* Diffing tree strucure = Rooted Tree Isomorphism, a specialized version of Graph Isomorphism
 * Tie into OOT? Go for EVA
   * when this is live, ISOs and IMS can adopt principle of putting something in "notes" for alerting SpacewalkTC that there is an issue with a particular item. Notes something like "This is some useless info !alert(This is some warning info)
 * ? Save drafts with UPDATE events SET drafts=CONCAT(drafts,NEW_TEXT) where ...;
